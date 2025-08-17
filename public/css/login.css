@@ -1,0 +1,187 @@
+body.login #shadow_popup {
+    opacity: 1;
+    display: flex;
+}
+
+body.login .logo {
+    max-width: 30px;
+    max-height: 30px;
+    object-fit: contain;
+    display: block;
+}
+
+/* 隐藏加载失败的图片 */
+body.login .logo[src*="logo.png"]:not([src*="data:"]):not([src*="blob:"]):not([src*="http"]):not([src*="https"]) {
+    display: none;
+}
+
+body.login #logoBlock {
+    align-items: center;
+    margin: 0 auto;
+    gap: 10px;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--SmartThemeBodyColor);
+    text-align: center;
+}
+
+body.login .userSelect {
+    display: flex;
+    flex-direction: column;
+    color: var(--SmartThemeBodyColor);
+    border: 1px solid var(--SmartThemeBorderColor);
+    border-radius: 5px;
+    padding: 3px 5px;
+    width: 30%;
+    cursor: pointer;
+    margin: 5px 0;
+    transition: background-color var(--animation-duration) ease-in-out;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    overflow: hidden;
+}
+
+body.login .userSelect .userName,
+body.login .userSelect .userHandle {
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+body.login .userSelect:hover {
+    background-color: var(--black30a);
+}
+
+body.login #handleEntryBlock,
+body.login #passwordEntryBlock,
+body.login #passwordRecoveryBlock {
+    margin: 2px;
+}
+
+/* 登录页面按钮样式 */
+body.login .menu_button {
+    color: var(--SmartThemeBodyColor);
+    background-color: var(--SmartThemeBlurTintColor);
+    border: 1px solid var(--SmartThemeBorderColor);
+    border-radius: 5px;
+    padding: 8px 16px;
+    cursor: pointer;
+    margin: 5px;
+    transition: all 0.3s ease;
+    display: inline-block;
+    text-align: center;
+    text-decoration: none;
+    min-width: 100px;
+}
+
+body.login .menu_button:hover {
+    background-color: var(--white30a);
+    transform: translateY(-1px);
+}
+
+body.login #loginButton {
+    background-color: #4CAF50;
+    color: white;
+    border-color: #4CAF50;
+}
+
+body.login #loginButton:hover {
+    background-color: #45a049;
+    border-color: #45a049;
+}
+
+body.login a.menu_button {
+    background-color: transparent;
+    color: var(--SmartThemeBodyColor);
+    border: 2px solid var(--SmartThemeBorderColor);
+}
+
+body.login a.menu_button:hover {
+    background-color: var(--SmartThemeBodyColor);
+    color: var(--SmartThemeBlurTintColor);
+}
+
+/* 输入框样式 */
+body.login .text_pole {
+    background-color: var(--SmartThemeBlurTintColor);
+    border: 1px solid var(--SmartThemeBorderColor);
+    border-radius: 5px;
+    color: var(--SmartThemeBodyColor);
+    padding: 8px 12px;
+    margin: 5px 0;
+    width: 100%;
+    max-width: 300px;
+}
+
+body.login .text_pole:focus {
+    outline: none;
+    border-color: #4CAF50;
+    background-color: var(--SmartThemeBlurTintColor);
+}
+
+/* 错误消息样式 */
+body.login #errorMessage {
+    color: #ff4444;
+    background-color: rgba(255, 68, 68, 0.1);
+    border: 1px solid #ff4444;
+    border-radius: 5px;
+    padding: 10px;
+    margin: 10px 0;
+    text-align: center;
+}
+
+/* 忘记密码链接样式 */
+body.login #recoverPassword {
+    color: #ff9800;
+    text-decoration: none;
+    margin: 10px 0;
+    display: inline-block;
+}
+
+body.login #recoverPassword:hover {
+    text-decoration: underline;
+}
+
+/* 确保按钮容器正确显示 */
+body.login .flex-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+body.login .flexGap10 {
+    gap: 10px;
+}
+
+/* 确保所有元素可见 */
+body.login #shadow_popup {
+    opacity: 1 !important;
+    display: flex !important;
+}
+
+body.login #dialogue_popup {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* 移除logo相关的红色小方块 */
+body.login .logo {
+    background-color: transparent !important;
+    border: none !important;
+}
+
+/* 确保图片元素没有意外的背景色 */
+body.login img {
+    background-color: transparent !important;
+}
+
+/* 移除任何可能的红色背景 */
+body.login *[style*="background-color: red"],
+body.login *[style*="background: red"],
+body.login *[style*="background-color: #ff"],
+body.login *[style*="background: #ff"] {
+    background-color: transparent !important;
+}
