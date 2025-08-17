@@ -1,12 +1,12 @@
 // 论坛页面JavaScript
 let articles = [];
 let filteredArticles = [];
-let currentPage = 0;
-let itemsPerPage = 12;
-let isLoading = false;
-let isLoggedIn = false;
-let currentUser = null;
-let currentArticle = null;
+let forumCurrentPage = 0;
+let forumItemsPerPage = 12;
+let forumIsLoading = false;
+let forumIsLoggedIn = false;
+let forumCurrentUser = null;
+let forumCurrentArticle = null;
 
 // 页面加载完成后初始化
 document.addEventListener('DOMContentLoaded', function() {
@@ -14,6 +14,18 @@ document.addEventListener('DOMContentLoaded', function() {
     loadArticles();
     setupEventListeners();
 });
+
+// 暴露全局变量到window对象
+window.forumIsLoggedIn = false;
+window.forumCurrentUser = null;
+window.forumCurrentArticle = null;
+
+// 更新全局变量的函数
+function updateGlobalVariables() {
+    window.forumIsLoggedIn = forumIsLoggedIn;
+    window.forumCurrentUser = forumCurrentUser;
+    window.forumCurrentArticle = forumCurrentArticle;
+}
 
 // 检查登录状态
 async function checkLoginStatus() {
@@ -25,18 +37,21 @@ async function checkLoginStatus() {
 
         if (response.ok) {
             const userData = await response.json();
-            isLoggedIn = true;
-            currentUser = userData;
+            forumIsLoggedIn = true;
+            forumCurrentUser = userData;
+            updateGlobalVariables();
             updateUIForLoginStatus();
         } else {
-            isLoggedIn = false;
-            currentUser = null;
+            forumIsLoggedIn = false;
+            forumCurrentUser = null;
+            updateGlobalVariables();
             updateUIForLoginStatus();
         }
     } catch (error) {
         console.error('Error checking login status:', error);
-        isLoggedIn = false;
-        currentUser = null;
+        forumIsLoggedIn = false;
+        forumCurrentUser = null;
+        updateGlobalVariables();
         updateUIForLoginStatus();
     }
 }
@@ -47,10 +62,10 @@ function updateUIForLoginStatus() {
     const loginPrompt = document.getElementById('loginPrompt');
     const userName = document.getElementById('userName');
 
-    if (isLoggedIn && currentUser) {
+    if (forumIsLoggedIn && forumCurrentUser) {
         userInfo.style.display = 'flex';
         loginPrompt.style.display = 'none';
-        userName.textContent = currentUser.name || currentUser.handle;
+        userName.textContent = forumCurrentUser.name || forumCurrentUser.handle;
     } else {
         userInfo.style.display = 'none';
         loginPrompt.style.display = 'flex';
@@ -77,7 +92,7 @@ function setupEventListeners() {
 
     // 模态框关闭
     document.addEventListener('click', function(event) {
-        if (event.target.classList.contains('modal')) {
+        if (event.target && event.target.classList && event.target.classList.contains('modal')) {
             closeModal(event.target);
         }
     });
@@ -98,13 +113,13 @@ function debounce(func, wait) {
 
 // 显示加载指示器
 function showLoading() {
-    isLoading = true;
+    forumIsLoading = true;
     document.getElementById('loadingIndicator').style.display = 'block';
 }
 
 // 隐藏加载指示器
 function hideLoading() {
-    isLoading = false;
+    forumIsLoading = false;
     document.getElementById('loadingIndicator').style.display = 'none';
 }
 
@@ -117,6 +132,12 @@ function showError(message) {
 function showSuccess(message) {
     alert(message);
 }
+
+// 暴露函数到全局作用域，供其他脚本使用
+window.showLoading = showLoading;
+window.hideLoading = hideLoading;
+window.showError = showError;
+window.showSuccess = showSuccess;
 
 // 格式化日期
 function formatDate(dateString) {
@@ -172,6 +193,10 @@ function getCategoryName(categoryId) {
     return categories[categoryId] || categoryId;
 }
 
+// 暴露更多函数到全局作用域
+window.formatDate = formatDate;
+window.getCategoryName = getCategoryName;
+
 // 加载文章列表
 async function loadArticles() {
     try {
@@ -218,8 +243,8 @@ function renderArticles() {
 
     noArticles.style.display = 'none';
 
-    const startIndex = currentPage * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
+    const startIndex = forumCurrentPage * forumItemsPerPage;
+    const endIndex = startIndex + forumItemsPerPage;
     const pageArticles = filteredArticles.slice(startIndex, endIndex);
 
     pageArticles.forEach(article => {
@@ -279,9 +304,13 @@ function createArticleCard(article) {
 
 // 筛选文章
 function filterArticles() {
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-    const categoryFilter = document.getElementById('categoryFilter').value;
-    const sortFilter = document.getElementById('sortFilter').value;
+    const searchInput = document.getElementById('searchInput');
+    const categoryFilterElement = document.getElementById('categoryFilter');
+    const sortFilterElement = document.getElementById('sortFilter');
+
+    const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+    const categoryFilter = categoryFilterElement ? categoryFilterElement.value : '';
+    const sortFilter = sortFilterElement ? sortFilterElement.value : '';
 
     filteredArticles = articles.filter(article => {
         const matchesSearch = !searchTerm ||
@@ -304,11 +333,11 @@ function filterArticles() {
             break;
         case 'latest':
         default:
-            filteredArticles.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            filteredArticles.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
             break;
     }
 
-    currentPage = 0;
+    forumCurrentPage = 0;
     renderArticles();
 }
 
@@ -319,8 +348,8 @@ function updatePagination() {
     const prevPage = document.getElementById('prevPage');
     const nextPage = document.getElementById('nextPage');
 
-    const totalPages = Math.ceil(filteredArticles.length / itemsPerPage);
-    const currentPageNum = currentPage + 1;
+    const totalPages = Math.ceil(Number(filteredArticles.length) / Number(forumItemsPerPage));
+    const currentPageNum = Number(forumCurrentPage) + 1;
 
     if (totalPages <= 1) {
         pagination.style.display = 'none';
@@ -330,36 +359,39 @@ function updatePagination() {
     pagination.style.display = 'flex';
     pageInfo.textContent = `第 ${currentPageNum} 页，共 ${totalPages} 页`;
 
-    prevPage.disabled = currentPage === 0;
-    nextPage.disabled = currentPage >= totalPages - 1;
+    if (prevPage) prevPage.disabled = forumCurrentPage === 0;
+    if (nextPage) nextPage.disabled = forumCurrentPage >= totalPages - 1;
 }
 
 // 上一页
 function previousPage() {
-    if (currentPage > 0) {
-        currentPage--;
+    if (forumCurrentPage > 0) {
+        forumCurrentPage--;
         renderArticles();
     }
 }
 
 // 下一页
 function nextPage() {
-    const totalPages = Math.ceil(filteredArticles.length / itemsPerPage);
-    if (currentPage < totalPages - 1) {
-        currentPage++;
+    const totalPages = Math.ceil(filteredArticles.length / forumItemsPerPage);
+    if (forumCurrentPage < totalPages - 1) {
+        forumCurrentPage++;
         renderArticles();
     }
 }
 
 // 创建文章
 function createArticle() {
-    if (!isLoggedIn) {
+    if (!forumIsLoggedIn) {
         showError('请先登录后再发布文章');
         return;
     }
 
     document.getElementById('articleModalTitle').textContent = '发布新文章';
-    document.getElementById('articleForm').reset();
+    const articleForm = document.getElementById('articleForm');
+    if (articleForm && typeof articleForm.reset === 'function') {
+        articleForm.reset();
+    }
 
     // 清空富文本编辑器内容
     const contentElement = document.getElementById('articleContent');
@@ -375,11 +407,16 @@ function closeArticleModal() {
     document.getElementById('articleModal').style.display = 'none';
 }
 
+// 暴露更多函数到全局作用域
+window.loadArticles = loadArticles;
+window.closeArticleModal = closeArticleModal;
+window.renderComments = renderComments;
+
 // 处理文章表单提交
 async function handleArticleSubmit(event) {
     event.preventDefault();
 
-    if (!isLoggedIn) {
+    if (!forumIsLoggedIn) {
         showError('请先登录后再发布文章');
         return;
     }
@@ -389,7 +426,11 @@ async function handleArticleSubmit(event) {
         title: formData.get('title'),
         content: formData.get('content'),
         category: formData.get('category'),
-        tags: formData.get('tags') ? formData.get('tags').split(',').map(tag => tag.trim()).filter(tag => tag) : []
+                tags: (() => {
+            const tagsValue = formData.get('tags');
+            return tagsValue && typeof tagsValue === 'string' ?
+                   tagsValue.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
+        })()
     };
 
     try {
@@ -439,7 +480,8 @@ async function viewArticle(articleId) {
         }
 
         const article = await response.json();
-        currentArticle = article;
+        forumCurrentArticle = article;
+        updateGlobalVariables();
         showArticleDetail(article);
     } catch (error) {
         console.error('Failed to get article details:', error);
@@ -473,9 +515,9 @@ function showArticleDetail(article) {
 
     // 显示删除按钮（只有作者或管理员可以删除）
     const deleteButton = document.getElementById('deleteArticleBtn');
-    const canDelete = isLoggedIn && (
-        currentUser?.admin ||
-        article.author.handle === currentUser?.handle
+    const canDelete = forumIsLoggedIn && (
+        forumCurrentUser?.admin ||
+        article.author.handle === forumCurrentUser?.handle
     );
 
     if (canDelete) {
@@ -494,7 +536,8 @@ function showArticleDetail(article) {
 // 关闭文章详情模态框
 function closeArticleDetailModal() {
     document.getElementById('articleDetailModal').style.display = 'none';
-    currentArticle = null;
+    forumCurrentArticle = null;
+    updateGlobalVariables();
 }
 
 // 渲染评论列表
@@ -517,12 +560,12 @@ function createCommentElement(comment) {
     commentDiv.className = 'comment-item';
     commentDiv.dataset.commentId = comment.id;
 
-    const canDelete = isLoggedIn && (
-        currentUser?.admin ||
-        comment.author.handle === currentUser?.handle
+    const canDelete = forumIsLoggedIn && (
+        forumCurrentUser?.admin ||
+        comment.author.handle === forumCurrentUser?.handle
     );
 
-    const canReply = isLoggedIn;
+    const canReply = forumIsLoggedIn;
 
     commentDiv.innerHTML = `
         <div class="comment-header">
@@ -554,9 +597,9 @@ function createReplyElement(reply) {
     const replyDiv = document.createElement('div');
     replyDiv.className = 'reply-item';
 
-    const canDelete = isLoggedIn && (
-        currentUser?.admin ||
-        reply.author.handle === currentUser?.handle
+    const canDelete = forumIsLoggedIn && (
+        forumCurrentUser?.admin ||
+        reply.author.handle === forumCurrentUser?.handle
     );
 
     replyDiv.innerHTML = `
@@ -577,9 +620,9 @@ function createReplyElement(reply) {
 
 // 创建回复HTML字符串
 function createReplyHTML(reply) {
-    const canDelete = isLoggedIn && (
-        currentUser?.admin ||
-        reply.author.handle === currentUser?.handle
+    const canDelete = forumIsLoggedIn && (
+        forumCurrentUser?.admin ||
+        reply.author.handle === forumCurrentUser?.handle
     );
 
     return `
@@ -600,24 +643,25 @@ function createReplyHTML(reply) {
 
 // 提交评论
 async function submitComment() {
-    if (!isLoggedIn) {
+    if (!forumIsLoggedIn) {
         showError('请先登录后再发表评论');
         return;
     }
 
-    if (!currentArticle) {
+    if (!forumCurrentArticle) {
         showError('无法获取当前文章信息');
         return;
     }
 
-    const content = document.getElementById('commentContent').value.trim();
+    const commentContentElement = document.getElementById('commentContent');
+    const content = commentContentElement ? commentContentElement.value.trim() : '';
     if (!content) {
         showError('请输入评论内容');
         return;
     }
 
     try {
-        const response = await fetch(`/api/forum/articles/${currentArticle.id}/comments`, {
+        const response = await fetch(`/api/forum/articles/${forumCurrentArticle.id}/comments`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -633,10 +677,11 @@ async function submitComment() {
 
         const result = await response.json();
         showSuccess('评论发表成功！');
-        document.getElementById('commentContent').value = '';
+        const commentContentElement = document.getElementById('commentContent');
+        if (commentContentElement) commentContentElement.value = '';
 
         // 重新加载文章详情以获取最新评论
-        await viewArticle(currentArticle.id);
+        await viewArticle(forumCurrentArticle.id);
     } catch (error) {
         console.error('Failed to submit comment:', error);
         showError(`发表评论失败: ${error.message}`);
@@ -666,8 +711,8 @@ async function deleteComment(commentId) {
         showSuccess('评论删除成功！');
 
         // 重新加载文章详情
-        if (currentArticle) {
-            await viewArticle(currentArticle.id);
+        if (forumCurrentArticle) {
+            await viewArticle(forumCurrentArticle.id);
         }
     } catch (error) {
         console.error('Failed to delete comment:', error);
@@ -711,7 +756,10 @@ function showReplyForm(commentId) {
     const replyForm = document.getElementById(`replyForm_${commentId}`);
     if (replyForm) {
         replyForm.style.display = 'block';
-        replyForm.querySelector('.reply-textarea').focus();
+        const textarea = replyForm.querySelector('.reply-textarea');
+        if (textarea && typeof textarea.focus === 'function') {
+            textarea.focus();
+        }
     }
 }
 
@@ -720,25 +768,26 @@ function hideReplyForm(commentId) {
     const replyForm = document.getElementById(`replyForm_${commentId}`);
     if (replyForm) {
         replyForm.style.display = 'none';
-        replyForm.querySelector('.reply-textarea').value = '';
+        const textarea = replyForm.querySelector('.reply-textarea');
+        if (textarea) textarea.value = '';
     }
 }
 
 // 提交回复
 async function submitReply(commentId) {
-    if (!isLoggedIn) {
+    if (!forumIsLoggedIn) {
         showError('请先登录后再发表回复');
         return;
     }
 
-    if (!currentArticle) {
+    if (!forumCurrentArticle) {
         showError('无法获取当前文章信息');
         return;
     }
 
     const replyForm = document.getElementById(`replyForm_${commentId}`);
     const textarea = replyForm.querySelector('.reply-textarea');
-    const content = textarea.value.trim();
+    const content = textarea && textarea.value ? textarea.value.trim() : '';
 
     if (!content) {
         showError('请输入回复内容');
@@ -746,7 +795,7 @@ async function submitReply(commentId) {
     }
 
     try {
-        const response = await fetch(`/api/forum/articles/${currentArticle.id}/comments`, {
+        const response = await fetch(`/api/forum/articles/${forumCurrentArticle.id}/comments`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -814,7 +863,7 @@ async function deleteReply(replyId) {
 
 // 点赞文章
 function likeArticle() {
-    if (!isLoggedIn) {
+    if (!forumIsLoggedIn) {
         showError('请先登录后再点赞');
         return;
     }
@@ -827,7 +876,7 @@ function likeArticle() {
 function shareArticle() {
     if (navigator.share) {
         navigator.share({
-            title: currentArticle?.title || '分享文章',
+            title: forumCurrentArticle?.title || '分享文章',
             url: window.location.href
         });
     } else {

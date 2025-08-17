@@ -69,7 +69,8 @@ class RichEditor {
     // 设置工具栏
     setupToolbar() {
         this.toolbar.addEventListener('click', (e) => {
-            const button = e.target.closest('.toolbar-btn');
+            const button = e.target && typeof e.target.closest === 'function' ?
+                          e.target.closest('.toolbar-btn') : null;
             if (!button) return;
 
             e.preventDefault();
@@ -147,9 +148,9 @@ class RichEditor {
 
         // 如果没有选中文本，聚焦到链接文本输入框
         if (!selectedText) {
-            linkText.focus();
+            if (linkText && typeof linkText.focus === 'function') linkText.focus();
         } else {
-            linkUrl.focus();
+            if (linkUrl && typeof linkUrl.focus === 'function') linkUrl.focus();
         }
 
         // 事件处理
@@ -165,8 +166,8 @@ class RichEditor {
         });
 
         okBtn.addEventListener('click', () => {
-            const text = linkText.value.trim();
-            const url = linkUrl.value.trim();
+            const text = linkText && linkText.value ? linkText.value.trim() : '';
+            const url = linkUrl && linkUrl.value ? linkUrl.value.trim() : '';
 
             if (!url) {
                 alert('请输入链接地址');
@@ -207,7 +208,9 @@ class RichEditor {
         // 回车键确认
         linkUrl.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
-                okBtn.click();
+                if (okBtn && typeof okBtn.click === 'function') {
+                    okBtn.click();
+                }
             }
         });
     }
@@ -215,7 +218,7 @@ class RichEditor {
     // 设置图片上传
     setupImageUpload() {
         this.imageUpload.addEventListener('change', (e) => {
-            const file = e.target.files[0];
+            const file = e.target && e.target.files ? e.target.files[0] : null;
             if (file) {
                 this.uploadImage(file);
             }
@@ -273,7 +276,9 @@ class RichEditor {
         }
 
         // 清空文件输入
-        this.imageUpload.value = '';
+        if (this.imageUpload && 'value' in this.imageUpload) {
+            this.imageUpload.value = '';
+        }
     }
 
     // 插入图片到编辑器
@@ -368,8 +373,8 @@ class RichEditor {
         const buttons = this.toolbar.querySelectorAll('.toolbar-btn[data-command]');
 
         buttons.forEach(button => {
-            const command = button.dataset.command;
-            const value = button.dataset.value;
+            const command = button.dataset ? button.dataset.command : null;
+            const value = button.dataset ? button.dataset.value : null;
 
             if (command === 'formatBlock') {
                 const isActive = document.queryCommandValue('formatBlock') === value;
@@ -377,9 +382,11 @@ class RichEditor {
             } else if (command === 'createLink') {
                 // 链接按钮状态检查
                 const selection = window.getSelection();
-                const isLink = selection.rangeCount > 0 &&
-                              selection.getRangeAt(0).commonAncestorContainer.nodeType === Node.ELEMENT_NODE &&
-                              selection.getRangeAt(0).commonAncestorContainer.closest('a');
+                                const container = selection.rangeCount > 0 ? selection.getRangeAt(0).commonAncestorContainer : null;
+                const isLink = container &&
+                              container.nodeType === Node.ELEMENT_NODE &&
+                              typeof container.closest === 'function' &&
+                              container.closest('a');
                 button.classList.toggle('active', !!isLink);
             } else {
                 const isActive = document.queryCommandState(command);
@@ -445,8 +452,8 @@ const originalHandleArticleSubmit = window.handleArticleSubmit;
 window.handleArticleSubmit = async function(event) {
     event.preventDefault();
 
-    if (!isLoggedIn) {
-        showError('请先登录后再发布文章');
+    if (!window.forumIsLoggedIn) {
+        window.showError('请先登录后再发布文章');
         return;
     }
 
@@ -455,11 +462,15 @@ window.handleArticleSubmit = async function(event) {
         title: formData.get('title'),
         content: richEditor ? richEditor.getContent() : formData.get('content'),
         category: formData.get('category'),
-        tags: formData.get('tags') ? formData.get('tags').split(',').map(tag => tag.trim()).filter(tag => tag) : []
+                tags: (() => {
+            const tagsValue = formData.get('tags');
+            return tagsValue && typeof tagsValue === 'string' ?
+                   tagsValue.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
+        })()
     };
 
     try {
-        showLoading();
+        window.showLoading();
 
         const response = await fetch('/api/forum/articles', {
             method: 'POST',
@@ -476,14 +487,14 @@ window.handleArticleSubmit = async function(event) {
         }
 
         const result = await response.json();
-        showSuccess('文章发布成功！');
-        closeArticleModal();
-        loadArticles();
+        window.showSuccess('文章发布成功！');
+        window.closeArticleModal();
+        window.loadArticles();
     } catch (error) {
         console.error('Failed to create article:', error);
-        showError(`发布失败: ${error.message}`);
+        window.showError(`发布失败: ${error.message}`);
     } finally {
-        hideLoading();
+        window.hideLoading();
     }
 };
 
@@ -492,8 +503,8 @@ const originalShowArticleDetail = window.showArticleDetail;
 window.showArticleDetail = function(article) {
     document.getElementById('articleDetailTitle').textContent = article.title;
     document.getElementById('articleDetailAuthor').textContent = article.author.name;
-    document.getElementById('articleDetailDate').textContent = formatDate(article.created_at);
-    document.getElementById('articleDetailCategory').textContent = getCategoryName(article.category);
+    document.getElementById('articleDetailDate').textContent = window.formatDate(article.created_at);
+    document.getElementById('articleDetailCategory').textContent = window.getCategoryName(article.category);
     document.getElementById('articleDetailViews').textContent = article.views || 0;
 
     // 支持HTML内容显示
@@ -512,20 +523,20 @@ window.showArticleDetail = function(article) {
 
     // 显示删除按钮（只有作者或管理员可以删除）
     const deleteButton = document.getElementById('deleteArticleBtn');
-    const canDelete = isLoggedIn && (
-        currentUser?.admin ||
-        article.author.handle === currentUser?.handle
+    const canDelete = window.forumIsLoggedIn && (
+        window.forumCurrentUser?.admin ||
+        article.author.handle === window.forumCurrentUser?.handle
     );
 
     if (canDelete) {
         deleteButton.style.display = 'inline-flex';
-        deleteButton.onclick = () => deleteArticle(article.id);
+        deleteButton.onclick = () => window.deleteArticle(article.id);
     } else {
         deleteButton.style.display = 'none';
     }
 
     // 显示评论
-    renderComments(article.comments || []);
+    window.renderComments(article.comments || []);
 
     document.getElementById('articleDetailModal').style.display = 'flex';
 };
@@ -550,7 +561,7 @@ window.deleteArticle = async function(articleId) {
             throw new Error(errorData.error || '删除文章失败');
         }
 
-        alert('文章删除成功！');
+        window.showSuccess('文章删除成功！');
         document.getElementById('articleDetailModal').style.display = 'none';
 
         // 重新加载文章列表
@@ -559,6 +570,6 @@ window.deleteArticle = async function(articleId) {
         }
     } catch (error) {
         console.error('Failed to delete article:', error);
-        alert(`删除文章失败: ${error.message}`);
+        window.showError(`删除文章失败: ${error.message}`);
     }
 };
