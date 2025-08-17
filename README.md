@@ -39,4 +39,5 @@ Description:
 
 ### 🔗 相关链接
 - [原版SillyTavern](https://github.com/SillyTavern/SillyTavern)
-- [使用文档](需要您添加文档链接)
+- [Windows使用文档](https://docs.sillytavern.app/installation/windows/)
+- [linxu使用文档](https://docs.sillytavern.app/installation/linuxmacos/)
