@@ -1,10 +1,41 @@
 /* 公用角色卡页面样式 */
 
+/* 确保页面可以正常滚动 */
+html, body {
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+}
+
+/* 自定义滚动条样式 */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
 /* 主容器 */
 .public-characters-container {
     min-height: 100vh;
+    height: auto;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: #ffffff;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 /* 头部样式 */
@@ -204,6 +235,9 @@
     transition: all 0.3s ease;
     cursor: pointer;
     border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    height: 450px; /* 固定高度确保卡片整齐 */
 }
 
 .character-card:hover {
@@ -232,6 +266,17 @@
 
 .character-info {
     padding: 1.5rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.character-content {
+    flex: 1;
+}
+
+.character-footer {
+    margin-top: auto;
 }
 
 .character-name {
@@ -247,9 +292,13 @@
     line-height: 1.5;
     margin: 0 0 1rem 0;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 3;
+    line-clamp: 3; /* 标准属性 */
     -webkit-box-orient: vertical;
     overflow: hidden;
+    text-overflow: ellipsis;
+    word-wrap: break-word;
+    max-height: 4.5em; /* 3行文本的最大高度 */
 }
 
 .character-meta {
@@ -514,6 +563,11 @@
     100% { transform: rotate(360deg); }
 }
 
+/* FontAwesome spinner动画 */
+.fa-spin {
+    animation: spin 1s linear infinite;
+}
+
 /* 加载更多按钮 */
 .load-more-container {
     text-align: center;
@@ -539,6 +593,11 @@
         grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
         gap: 1rem;
         padding: 1rem;
+    }
+
+    .character-card {
+        height: auto; /* 移动端使用自动高度 */
+        min-height: 400px;
     }
 
     .character-detail {
@@ -575,6 +634,11 @@
     .characters-grid {
         grid-template-columns: 1fr;
         padding: 1rem;
+    }
+
+    .character-card {
+        height: auto; /* 小屏幕使用自动高度 */
+        min-height: 350px;
     }
 
     .character-actions {
