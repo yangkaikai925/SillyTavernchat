@@ -140,13 +140,16 @@ async function loadCharacters() {
     }
 }
 
-// 渲染角色卡
+// 渲染角色卡（初始加载或重新筛选时使用）
 function renderCharacters() {
     const grid = $('#charactersGrid');
     grid.empty();
 
-    const startIndex = currentPage * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
+    // 重置页码
+    currentPage = 0;
+
+    const startIndex = 0;
+    const endIndex = itemsPerPage;
     const pageCharacters = filteredCharacters.slice(startIndex, endIndex);
 
     if (pageCharacters.length === 0) {
@@ -157,6 +160,7 @@ function renderCharacters() {
                 <p>还没有用户上传角色卡，快来上传第一个吧！</p>
             </div>
         `);
+        $('#loadMoreButton').hide();
         return;
     }
 
@@ -166,7 +170,38 @@ function renderCharacters() {
     });
 
     // 显示/隐藏加载更多按钮
-    if (endIndex < filteredCharacters.length) {
+    updateLoadMoreButton();
+}
+
+// 追加更多角色卡（加载更多时使用）
+function appendMoreCharacters() {
+    const grid = $('#charactersGrid');
+
+    const startIndex = (currentPage + 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const pageCharacters = filteredCharacters.slice(startIndex, endIndex);
+
+    if (pageCharacters.length === 0) {
+        $('#loadMoreButton').hide();
+        return;
+    }
+
+    pageCharacters.forEach(character => {
+        const card = createCharacterCard(character);
+        grid.append(card);
+    });
+
+    // 更新页码
+    currentPage++;
+
+    // 显示/隐藏加载更多按钮
+    updateLoadMoreButton();
+}
+
+// 更新加载更多按钮的显示状态
+function updateLoadMoreButton() {
+    const totalLoaded = (currentPage + 1) * itemsPerPage;
+    if (totalLoaded < filteredCharacters.length) {
         $('#loadMoreButton').show();
     } else {
         $('#loadMoreButton').hide();
@@ -219,19 +254,23 @@ function createCharacterCard(character) {
                 <img src="${avatarUrl}" alt="${character.name}" onerror="this.src='/img/default-expressions/neutral.png'">
             </div>
             <div class="character-info">
-                <h3 class="character-name">${character.name}</h3>
-                <p class="character-description">${character.description || '暂无描述'}</p>
-                <div class="character-meta">
-                    <span class="character-uploader">
-                        <i class="fa-solid fa-user"></i>
-                        ${character.uploader || 'Unknown'}
-                    </span>
-                    <span class="character-date">
-                        <i class="fa-solid fa-calendar"></i>
-                        ${formatDate(character.date_added)}
-                    </span>
+                <div class="character-content">
+                    <h3 class="character-name">${character.name}</h3>
+                    <p class="character-description">${character.description || '暂无描述'}</p>
                 </div>
-                ${tagsHtml ? `<div class="character-tags">${tagsHtml}</div>` : ''}
+                <div class="character-footer">
+                    <div class="character-meta">
+                        <span class="character-uploader">
+                            <i class="fa-solid fa-user"></i>
+                            ${character.uploader || 'Unknown'}
+                        </span>
+                        <span class="character-date">
+                            <i class="fa-solid fa-calendar"></i>
+                            ${formatDate(character.date_added)}
+                        </span>
+                    </div>
+                    ${tagsHtml ? `<div class="character-tags">${tagsHtml}</div>` : ''}
+                </div>
             </div>
             <div class="character-actions">
                 ${importButton}
@@ -464,8 +503,19 @@ async function uploadCharacter(formData) {
 
 // 加载更多角色卡
 function loadMore() {
-    currentPage++;
-    renderCharacters();
+    const button = $('#loadMoreButton');
+    const originalText = button.html();
+
+    // 显示加载状态
+    button.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i> 加载中...');
+
+    // 模拟异步加载（给用户反馈）
+    setTimeout(() => {
+        appendMoreCharacters();
+
+        // 恢复按钮状态
+        button.prop('disabled', false).html(originalText);
+    }, 300);
 }
 
 // 事件监听器
