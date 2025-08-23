@@ -9417,14 +9417,14 @@ jQuery(async function () {
     $('#send_textarea').on('focusin focus click', () => {
         S_TAPreviouslyFocused = true;
     });
-    $('#send_but, #option_regenerate, #option_continue, #mes_continue, #mes_impersonate').on('click', () => {
+    $('#send_but, #regenerate_but, #option_regenerate, #option_continue, #mes_continue, #mes_impersonate').on('click', () => {
         if (S_TAPreviouslyFocused) {
             $('#send_textarea').trigger('focus');
         }
     });
     $(document).on('click', event => {
         if ($(':focus').attr('id') !== 'send_textarea') {
-            var validIDs = ['options_button', 'send_but', 'mes_impersonate', 'mes_continue', 'send_textarea', 'option_regenerate', 'option_continue'];
+            var validIDs = ['options_button', 'send_but', 'regenerate_but', 'mes_impersonate', 'mes_continue', 'send_textarea', 'option_regenerate', 'option_continue'];
             if (!validIDs.includes($(event.target).attr('id'))) {
                 S_TAPreviouslyFocused = false;
             }
@@ -9465,6 +9465,35 @@ jQuery(async function () {
     $('#send_but').on('click', function () {
         sendTextareaMessage();
     });
+
+    $('#regenerate_but').on('click', function () {
+        // 触发重新生成，与菜单中的重新生成按钮功能相同
+        $('#option_regenerate').trigger('click');
+    });
+
+    // 控制重新生成按钮的显示/隐藏
+    window.updateRegenerateButtonVisibility = function updateRegenerateButtonVisibility() {
+        const hasMessages = Array.isArray(chat) && chat.length > 0;
+        const hasNonUserMessage = hasMessages && chat.some(msg => !msg.is_user && !msg.is_system);
+        const isConnected = online_status !== 'no_connection';
+        const isNotGenerating = !is_send_press && !(selected_group && is_group_generating);
+
+        if (isConnected && isNotGenerating && hasNonUserMessage) {
+            $('#regenerate_but').removeClass('displayNone');
+        } else {
+            $('#regenerate_but').addClass('displayNone');
+        }
+    }
+
+    // 在聊天变化时更新重新生成按钮的显示状态
+    eventSource.on(event_types.CHAT_CHANGED, updateRegenerateButtonVisibility);
+    eventSource.on(event_types.MESSAGE_RECEIVED, updateRegenerateButtonVisibility);
+    eventSource.on(event_types.MESSAGE_DELETED, updateRegenerateButtonVisibility);
+    eventSource.on(event_types.MESSAGE_EDITED, updateRegenerateButtonVisibility);
+    eventSource.on(event_types.MESSAGE_SWIPED, updateRegenerateButtonVisibility);
+
+    // 初始化时也检查一次
+    updateRegenerateButtonVisibility();
 
     //menu buttons setup
 

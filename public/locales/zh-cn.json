@@ -1298,6 +1298,7 @@
     "Manage chat files": "管理聊天文件",
     "Delete messages": "删除消息",
     "Regenerate": "重新生成",
+    "Regenerate last message": "重新生成最后一条消息",
     "Impersonate": "AI 帮答",
     "Continue": "继续",
     "extension_install_1": "若想从此页安装扩展程序，你需要提前安装",

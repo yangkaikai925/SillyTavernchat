@@ -993,7 +993,21 @@ body .panelControlBar {
 }
 
 #send_but {
+    order: 3;
+}
+
+#regenerate_but {
     order: 2;
+}
+
+/* 重新生成按钮的特殊样式 */
+#regenerate_but:hover {
+    color: var(--SmartThemeQuoteColor);
+}
+
+/* 当正在生成时，隐藏重新生成按钮 */
+#form_sheld.isExecutingCommandsFromChatInput #regenerate_but {
+    visibility: hidden;
 }
 
 #mes_continue {

@@ -337,6 +337,7 @@ function RA_checkOnlineStatus() {
         send_textarea.attr('placeholder', send_textarea.attr('no_connection_text')); //Input bar placeholder tells users they are not connected
         $('#send_form').addClass('no-connection');
         $('#send_but').addClass('displayNone'); //send button is hidden when not connected;
+        $('#regenerate_but').addClass('displayNone'); //regenerate button is hidden when not connected;
         $('#mes_continue').addClass('displayNone'); //continue button is hidden when not connected;
         $('#mes_impersonate').addClass('displayNone'); //continue button is hidden when not connected;
         $('#API-status-top').removeClass('fa-plug');
@@ -354,8 +355,14 @@ function RA_checkOnlineStatus() {
 
             if (!is_send_press && !(selected_group && is_group_generating)) {
                 $('#send_but').removeClass('displayNone'); //on connect, send button shows
+                // 重新生成按钮的显示由专门的函数控制
                 $('#mes_continue').removeClass('displayNone'); //continue button is shown when connected
                 $('#mes_impersonate').removeClass('displayNone'); //continue button is shown when connected
+
+                // 触发重新生成按钮显示状态更新
+                if (typeof updateRegenerateButtonVisibility === 'function') {
+                    updateRegenerateButtonVisibility();
+                }
             }
         }
     }
