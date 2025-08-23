@@ -95,15 +95,50 @@
         flex-wrap: wrap;
     }
 
-    body {
+    body:not(.welcome-page):not(.login) {
         touch-action: none;
         overflow: hidden;
         position: fixed;
     }
 
-    .world_entry_form_control {
-        /* width: 100%; */
+    /* 专门为登录/注册页面修复横向滚动 */
+    body.login {
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+        width: 100vw !important;
+        max-width: 100vw !important;
     }
+
+    body.login * {
+        max-width: 100vw;
+        box-sizing: border-box;
+    }
+
+    /* 强制修复弹窗容器 */
+    @media (max-width: 1000px) {
+        body.login #shadow_popup {
+            width: 100vw !important;
+            max-width: 100vw !important;
+            overflow-x: hidden !important;
+            position: fixed !important;
+            left: 0 !important;
+            right: 0 !important;
+        }
+
+        body.login #dialogue_popup {
+            width: calc(100vw - 20px) !important;
+            max-width: calc(100vw - 20px) !important;
+            left: 10px !important;
+            right: 10px !important;
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+            position: fixed !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+        }
+    }
+
+
 
     .drawer-content {
         min-width: unset;
