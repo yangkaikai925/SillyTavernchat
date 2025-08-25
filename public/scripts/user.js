@@ -777,9 +777,35 @@ async function changeAvatar(handle, avatar) {
 }
 
 async function openAdminPanel() {
+    let loadStatsData = {};
+
+    // 获取用户负载统计数据
+    async function getUserLoadStats() {
+        try {
+            const response = await fetch('/api/system-load/users', {
+                method: 'GET',
+                headers: getRequestHeaders(),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                loadStatsData = {};
+                data.users.forEach(userLoad => {
+                    loadStatsData[userLoad.userHandle] = userLoad;
+                });
+                return data;
+            }
+        } catch (error) {
+            console.error('获取用户负载统计失败:', error);
+        }
+        return { users: [], systemLoad: null };
+    }
+
     async function renderUsers() {
         const users = await getUsers();
+        const loadData = await getUserLoadStats();
         template.find('.usersList').empty();
+
         for (const user of users) {
             const userBlock = template.find('.userAccountTemplate .userAccount').clone();
             userBlock.find('.userName').text(user.name);
@@ -790,6 +816,42 @@ async function openAdminPanel() {
             userBlock.find('.hasPassword').toggle(user.password);
             userBlock.find('.noPassword').toggle(!user.password);
             userBlock.find('.userCreated').text(new Date(user.created).toLocaleString());
+
+                                    // 添加聊天统计信息（只显示活跃用户的统计）
+            const userLoadStats = loadStatsData[user.handle];
+            if (userLoadStats) {
+                userBlock.find('.userLoadInfo').show();
+                userBlock.find('.userLastActivity').show();
+
+                const todayMessages = userLoadStats.todayMessages || 0;
+                const totalMessages = userLoadStats.totalMessages || 0;
+
+                userBlock.find('.userTodayMessages').text(todayMessages);
+                userBlock.find('.userTotalMessages').text(`(总计: ${totalMessages}楼)`);
+                userBlock.find('.userLastMessageTime').text(userLoadStats.lastMessageTimeFormatted || '未知');
+
+                // 根据今日消息数设置颜色
+                const todayElement = userBlock.find('.userTodayMessages');
+                todayElement.removeClass('low medium high very_high');
+                if (todayMessages >= 100) {
+                    todayElement.addClass('very_high').css('color', '#dc3545');
+                } else if (todayMessages >= 50) {
+                    todayElement.addClass('high').css('color', '#fd7e14');
+                } else if (todayMessages >= 20) {
+                    todayElement.addClass('medium').css('color', '#ffc107');
+                } else if (todayMessages >= 5) {
+                    todayElement.addClass('low').css('color', '#28a745');
+                } else {
+                    todayElement.css('color', '#6c757d');
+                }
+
+                // 添加在线状态指示器
+                userBlock.find('.userName').before('<span class="statusIndicator online" style="margin-right: 5px;"></span>');
+            } else {
+                // 为非活跃用户添加离线状态指示器
+                userBlock.find('.userName').before('<span class="statusIndicator offline" style="margin-right: 5px;"></span>');
+            }
+
             userBlock.find('.userEnableButton').toggle(!user.enabled).on('click', () => enableUser(user.handle, renderUsers));
             userBlock.find('.userDisableButton').toggle(user.enabled).on('click', () => disableUser(user.handle, renderUsers));
             userBlock.find('.userPromoteButton').toggle(!user.admin).on('click', () => promoteUser(user.handle, renderUsers));
@@ -823,13 +885,239 @@ async function openAdminPanel() {
         }
     }
 
+        let loadRefreshInterval = null;
+    let countdownInterval = null;
+    let countdownSeconds = 5;
+
+    // 渲染系统负载页面
+    async function renderSystemLoad() {
+        try {
+            const response = await fetch('/api/system-load/overview', {
+                method: 'GET',
+                headers: getRequestHeaders(),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                updateSystemLoadUI(data);
+            }
+        } catch (error) {
+            console.error('获取系统负载概览失败:', error);
+        }
+    }
+
+    // 更新倒计时显示
+    function updateCountdown() {
+        const countdownElement = template.find('.refreshCountdown');
+        if (countdownElement.length > 0) {
+            countdownElement.text(countdownSeconds);
+            countdownSeconds--;
+
+            if (countdownSeconds < 0) {
+                countdownSeconds = 5;
+            }
+        }
+    }
+
+    // 启动自动刷新
+    function startAutoRefresh() {
+        if (loadRefreshInterval) {
+            clearInterval(loadRefreshInterval);
+        }
+        if (countdownInterval) {
+            clearInterval(countdownInterval);
+        }
+
+        countdownSeconds = 5;
+
+        // 启动数据刷新定时器
+        loadRefreshInterval = setInterval(() => {
+            renderSystemLoad();
+            countdownSeconds = 5; // 重置倒计时
+        }, 5000);
+
+        // 启动倒计时定时器
+        countdownInterval = setInterval(() => {
+            updateCountdown();
+        }, 1000);
+
+        // 立即更新倒计时显示
+        updateCountdown();
+    }
+
+    // 停止自动刷新
+    function stopAutoRefresh() {
+        if (loadRefreshInterval) {
+            clearInterval(loadRefreshInterval);
+            loadRefreshInterval = null;
+        }
+        if (countdownInterval) {
+            clearInterval(countdownInterval);
+            countdownInterval = null;
+        }
+    }
+
+    // 更新系统负载UI
+    function updateSystemLoadUI(data) {
+        console.log('系统负载数据:', data); // 调试日志
+        const { system, users } = data;
+
+        // 更新系统负载指标
+        if (system && system.current) {
+            const cpuPercent = Math.round(system.current.cpu.percent || 0);
+            const cpuRaw = Math.round(system.current.cpu.raw || 0);
+            const memoryPercent = Math.round(system.current.memory.percent || 0);
+
+            template.find('.cpuLoadBar').css('width', `${cpuPercent}%`);
+            template.find('.cpuLoadText').text(`${cpuPercent}%`);
+
+            // 在控制台显示详细的CPU信息用于调试
+            console.log('CPU详细信息:', {
+                平滑值: cpuPercent + '%',
+                原始值: cpuRaw + '%',
+                核心数: system.current.cpu.cores,
+                负载平均: system.current.cpu.loadAverage,
+                型号: system.current.cpu.model
+            });
+            template.find('.memoryLoadBar').css('width', `${memoryPercent}%`);
+            template.find('.memoryLoadText').text(`${memoryPercent}%`);
+            template.find('.systemUptimeText').text(system.current.uptime.systemFormatted || '未知');
+        }
+
+        // 更新用户统计信息
+        template.find('.activeUsersCount').text(users.active || 0);
+        template.find('.totalMessagesCount').text(users.totalMessages || 0);
+        template.find('.todayMessagesCount').text(users.totalTodayMessages || 0);
+
+
+        // 更新用户负载表格
+        const tableBody = template.find('.userLoadTableBody');
+        tableBody.empty();
+
+                // 显示活跃用户（topLoad已经只包含活跃用户）
+        const activeUsers = users.topLoad || [];
+
+        if (activeUsers.length > 0) {
+            activeUsers.forEach(userLoad => {
+                const activityLevel = getActivityLevelText(userLoad.chatActivityLevel);
+                const row = $(`
+                    <div class="userLoadTableRow flex-container">
+                        <div class="userLoadTableCell" style="flex: 1.5;">
+                            <span class="statusIndicator online"></span>
+                            <strong>${userLoad.userHandle}</strong>
+                        </div>
+                        <div class="userLoadTableCell" style="flex: 1.2;">
+                            <span class="activityLevel ${userLoad.chatActivityLevel}">
+                                ${activityLevel}
+                            </span>
+                        </div>
+                        <div class="userLoadTableCell" style="flex: 1;">
+                            ${userLoad.todayMessages || 0}楼
+                        </div>
+                        <div class="userLoadTableCell" style="flex: 1.2;">
+                            ${userLoad.totalMessages || 0}楼
+                        </div>
+
+                        <div class="userLoadTableCell" style="flex: 2;">
+                            ${userLoad.lastMessageTimeFormatted || '未知'}
+                        </div>
+                        <div class="userLoadTableCell" style="flex: 0.8;">
+                            <button type="button" class="menu_button resetUserLoadButton" data-user="${userLoad.userHandle}">
+                                <i class="fa-fw fa-solid fa-refresh"></i>
+                            </button>
+                        </div>
+                    </div>
+                `);
+                tableBody.append(row);
+            });
+        } else {
+            tableBody.append('<div class="userLoadTableRow"><div class="userLoadTableCell" style="flex: 1; text-align: center; color: #b0b0b0;">当前无活跃用户</div></div>');
+        }
+
+        // 绑定重置按钮事件
+        template.find('.resetUserLoadButton').on('click', async function() {
+            const userHandle = $(this).data('user');
+            await resetUserLoadStats(userHandle);
+            renderSystemLoad();
+        });
+    }
+
+    // 获取活跃度等级文本
+    function getActivityLevelText(level) {
+        switch (level) {
+            case 'very_high': return '非常活跃';
+            case 'high': return '高度活跃';
+            case 'medium': return '中等活跃';
+            case 'low': return '轻度活跃';
+            case 'minimal': return '最低活跃';
+            default: return '未知';
+        }
+    }
+
+    // 格式化字节数
+    function formatBytes(bytes) {
+        if (bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // 重置用户负载统计
+    async function resetUserLoadStats(userHandle) {
+        try {
+            const response = await fetch(`/api/system-load/user/${userHandle}/reset`, {
+                method: 'POST',
+                headers: getRequestHeaders(),
+            });
+
+            if (response.ok) {
+                toastr.success(`用户 ${userHandle} 的负载统计已重置`);
+            } else {
+                toastr.error('重置用户负载统计失败');
+            }
+        } catch (error) {
+            console.error('重置用户负载统计失败:', error);
+            toastr.error('重置用户负载统计失败');
+        }
+    }
+
+    // 清除所有负载统计
+    async function clearAllLoadStats() {
+        try {
+            const response = await fetch('/api/system-load/clear', {
+                method: 'POST',
+                headers: getRequestHeaders(),
+            });
+
+            if (response.ok) {
+                toastr.success('所有负载统计数据已清理');
+                renderSystemLoad();
+            } else {
+                toastr.error('清理负载统计数据失败');
+            }
+        } catch (error) {
+            console.error('清理负载统计数据失败:', error);
+            toastr.error('清理负载统计数据失败');
+        }
+    }
+
     const template = $(await renderTemplateAsync('admin'));
 
-    template.find('.adminNav > button').on('click', function () {
+        template.find('.adminNav > button').on('click', function () {
         const target = String($(this).data('target-tab'));
         template.find('.navTab').each(function () {
             $(this).toggle(this.classList.contains(target));
         });
+
+        // 如果切换到系统负载页面，加载数据并启动自动刷新
+        if (target === 'systemLoadTab') {
+            renderSystemLoad();
+            startAutoRefresh();
+        } else {
+            // 离开系统负载页面时停止自动刷新
+            stopAutoRefresh();
+        }
     });
 
     template.find('.createUserDisplayName').on('input', async function () {
@@ -849,7 +1137,28 @@ async function openAdminPanel() {
         });
     });
 
-    callGenericPopup(template, POPUP_TYPE.TEXT, '', { okButton: 'Close', wide: false, large: false, allowVerticalScrolling: true, allowHorizontalScrolling: false });
+    // 绑定系统负载页面的事件处理程序
+    template.find('.refreshLoadButton').on('click', function() {
+        renderSystemLoad();
+    });
+
+    template.find('.clearLoadStatsButton').on('click', async function() {
+        if (confirm('确定要清除所有负载统计数据吗？此操作不可撤销。')) {
+            await clearAllLoadStats();
+        }
+    });
+
+        callGenericPopup(template, POPUP_TYPE.TEXT, '', {
+        okButton: 'Close',
+        wide: true,
+        large: true,
+        allowVerticalScrolling: true,
+        allowHorizontalScrolling: true,
+        onClose: function() {
+            // 弹窗关闭时停止自动刷新
+            stopAutoRefresh();
+        }
+    });
     renderUsers();
 }
 

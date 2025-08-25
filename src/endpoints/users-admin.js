@@ -16,6 +16,7 @@ import {
     ensurePublicDirectoriesExist,
 } from '../users.js';
 import { DEFAULT_USER } from '../constants.js';
+import systemMonitor from '../system-monitor.js';
 
 export const router = express.Router();
 
@@ -27,7 +28,10 @@ router.post('/get', requireAdminMiddleware, async (_request, response) => {
         /** @type {Promise<import('../users.js').UserViewModel>[]} */
         const viewModelPromises = users
             .map(user => new Promise(resolve => {
-                getUserAvatar(user.handle).then(avatar =>
+                getUserAvatar(user.handle).then(avatar => {
+                    // 获取用户负载统计（如果可用）
+                    const loadStats = systemMonitor.getUserLoadStats(user.handle);
+
                     resolve({
                         handle: user.handle,
                         name: user.name,
@@ -36,8 +40,13 @@ router.post('/get', requireAdminMiddleware, async (_request, response) => {
                         enabled: user.enabled,
                         created: user.created,
                         password: !!user.password,
-                    }),
-                );
+                        loadStats: loadStats ? {
+                            loadPercentage: loadStats.loadPercentage,
+                            totalRequests: loadStats.totalRequests,
+                            lastActivityFormatted: loadStats.lastActivityFormatted
+                        } : null
+                    });
+                });
             }));
 
         const viewModels = await Promise.all(viewModelPromises);

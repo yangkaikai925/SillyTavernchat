@@ -43,6 +43,7 @@ import basicAuthMiddleware from './middleware/basicAuth.js';
 import getWhitelistMiddleware from './middleware/whitelist.js';
 import accessLoggerMiddleware, { getAccessLogPath, migrateAccessLog } from './middleware/accessLogWriter.js';
 import multerMonkeyPatch from './middleware/multerMonkeyPatch.js';
+import chatTrackerMiddleware from './middleware/chatTracker.js';
 import initRequestProxy from './request-proxy.js';
 import cacheBuster from './middleware/cacheBuster.js';
 import corsProxyMiddleware from './middleware/corsProxy.js';
@@ -139,6 +140,9 @@ app.use(cookieSession({
 }));
 
 app.use(setUserDataMiddleware);
+
+// Chat tracking middleware //
+app.use(chatTrackerMiddleware());
 
 // CSRF Protection //
 if (!cliArgs.disableCsrf) {

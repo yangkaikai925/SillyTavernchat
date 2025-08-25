@@ -1,0 +1,484 @@
+/* 系统负载监控样式 - 深色主题 */
+
+/* 管理员面板弹窗优化 */
+.adminTabs {
+    min-width: 900px;
+    max-width: 95vw;
+}
+
+.adminTabs .popup {
+    min-width: 900px !important;
+    max-width: 95vw !important;
+    width: auto !important;
+}
+
+/* 确保管理员面板有足够的宽度 */
+#dialogue_popup:has(.adminTabs) {
+    min-width: 900px !important;
+    max-width: 95vw !important;
+    width: auto !important;
+}
+
+/* 负载指标样式 */
+.loadMetric {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 250px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.loadMetric label {
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #e0e0e0;
+    font-size: 14px;
+}
+
+/* 负载条样式 */
+.loadBar {
+    position: relative;
+    width: 240px;
+    height: 24px;
+    background-color: #2d2d30;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #555;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.loadBarFill {
+    height: 100%;
+    transition: width 0.3s ease;
+    border-radius: 10px 0 0 10px;
+}
+
+.loadBarFill.cpuLoadBar {
+    background: linear-gradient(90deg, #4CAF50, #FFC107, #F44336);
+}
+
+.loadBarFill.memoryLoadBar {
+    background: linear-gradient(90deg, #2196F3, #FF9800, #F44336);
+}
+
+.loadBarText {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 12px;
+    font-weight: bold;
+    color: #e0e0e0;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
+}
+
+/* 用户负载表格样式 */
+.userLoadTable {
+    border: 1px solid #555;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 10px;
+    background-color: #2d2d30;
+}
+
+.userLoadTableHeader {
+    background-color: #1e1e1e;
+    border-bottom: 1px solid #555;
+    font-weight: bold;
+    color: #e0e0e0;
+}
+
+.userLoadTableHeader .userLoadTableCell {
+    font-size: 13px;
+    font-weight: bold;
+    min-height: 36px;
+}
+
+.userLoadTableCell {
+    padding: 8px 6px;
+    border-right: 1px solid #555;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #e0e0e0;
+    font-size: 12px;
+    line-height: 1.4;
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    word-break: keep-all;
+}
+
+/* 表格中的按钮样式 */
+.userLoadTableCell .menu_button {
+    padding: 4px 8px;
+    font-size: 11px;
+    min-height: 24px;
+    border-radius: 3px;
+}
+
+.userLoadTableCell .resetUserLoadButton {
+    background-color: #17a2b8;
+    border: 1px solid #17a2b8;
+    color: white;
+}
+
+.userLoadTableCell .resetUserLoadButton:hover {
+    background-color: #138496;
+    border-color: #117a8b;
+}
+
+.userLoadTableCell:last-child {
+    border-right: none;
+}
+
+.userLoadTableRow {
+    border-bottom: 1px solid #444;
+    background-color: #2d2d30;
+}
+
+.userLoadTableRow:hover {
+    background-color: #3d3d40;
+}
+
+.userLoadTableRow:last-child {
+    border-bottom: none;
+}
+
+/* 活跃度等级颜色 */
+.activityLevel {
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 12px;
+}
+
+.activityLevel.very_high {
+    background-color: rgba(220, 53, 69, 0.2);
+    color: #dc3545;
+    border: 1px solid #dc3545;
+}
+
+.activityLevel.high {
+    background-color: rgba(253, 126, 20, 0.2);
+    color: #fd7e14;
+    border: 1px solid #fd7e14;
+}
+
+.activityLevel.medium {
+    background-color: rgba(255, 193, 7, 0.2);
+    color: #ffc107;
+    border: 1px solid #ffc107;
+}
+
+.activityLevel.low {
+    background-color: rgba(40, 167, 69, 0.2);
+    color: #28a745;
+    border: 1px solid #28a745;
+}
+
+.activityLevel.minimal {
+    background-color: rgba(108, 117, 125, 0.2);
+    color: #6c757d;
+    border: 1px solid #6c757d;
+}
+
+/* 系统负载概览样式 */
+.systemLoadOverview {
+    background-color: #1e1e1e;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #555;
+    margin-bottom: 20px;
+}
+
+.systemLoadOverview h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #e0e0e0;
+    text-align: center;
+    font-size: 18px;
+}
+
+.systemLoadOverview .flex-container.flexGap10 {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 30px;
+    align-items: center;
+    justify-items: center;
+}
+
+/* 运行时间显示样式 */
+.systemLoadOverview .loadMetric:last-child {
+    background-color: #2d2d30;
+    padding: 15px 20px;
+    border-radius: 8px;
+    border: 1px solid #555;
+}
+
+.systemLoadOverview .systemUptimeText {
+    font-size: 16px;
+    font-weight: bold;
+    color: #28a745;
+    text-shadow: 0 0 5px rgba(40, 167, 69, 0.3);
+}
+
+/* 用户负载统计样式 */
+.userLoadStats {
+    background-color: #1e1e1e;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #555;
+    margin-bottom: 20px;
+}
+
+.userLoadStats h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #e0e0e0;
+    font-size: 18px;
+}
+
+.userLoadStats .flex-container.alignItemsCenter.flexGap10 {
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+/* 按钮横向排列样式 */
+.userLoadStats .flex-container.alignItemsCenter.flexGap10:has(.menu_button) {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 15px;
+    flex-wrap: nowrap;
+}
+
+.userLoadStats .menu_button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 16px;
+    font-size: 13px;
+    white-space: nowrap;
+    min-width: auto;
+    flex-shrink: 0;
+}
+
+/* 自动刷新指示器样式 */
+.autoRefreshIndicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background-color: #2d2d30;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #555;
+    font-size: 12px;
+    color: #28a745;
+    margin-left: auto;
+}
+
+.refreshCountdown {
+    background-color: #28a745;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: bold;
+    min-width: 20px;
+    text-align: center;
+}
+
+.loadStatsInfo {
+    font-size: 14px;
+    color: #b0b0b0;
+}
+
+.loadStatsInfo span {
+    font-weight: bold;
+    color: #e0e0e0;
+}
+
+/* 负载历史图表样式 */
+.loadHistoryChart {
+    background-color: #1e1e1e;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #555;
+}
+
+.loadHistoryChart h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #e0e0e0;
+}
+
+.chartContainer {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #2d2d30;
+    border: 1px solid #555;
+}
+
+#loadHistoryCanvas {
+    max-width: 100%;
+    height: auto;
+}
+
+/* 按钮样式增强 */
+.refreshLoadButton {
+    background-color: #28a745;
+    color: white;
+}
+
+.refreshLoadButton:hover {
+    background-color: #218838;
+}
+
+.clearLoadStatsButton {
+    background-color: #dc3545;
+    color: white;
+}
+
+.clearLoadStatsButton:hover {
+    background-color: #c82333;
+}
+
+/* 删除重复的自动刷新指示器样式，使用上面更好的版本 */
+
+/* 用户负载信息样式 */
+.userLoadInfo {
+    font-size: 12px;
+    color: #6c757d;
+}
+
+.userLoadInfo .userLoadPercentage {
+    font-weight: bold;
+}
+
+.userLastActivity {
+    font-size: 12px;
+    color: #6c757d;
+}
+
+/* 响应式设计 */
+@media (max-width: 1200px) {
+    .adminTabs {
+        min-width: 800px;
+    }
+
+    #dialogue_popup:has(.adminTabs) {
+        min-width: 800px !important;
+    }
+}
+
+@media (max-width: 900px) {
+    .adminTabs {
+        min-width: 95vw;
+    }
+
+    #dialogue_popup:has(.adminTabs) {
+        min-width: 95vw !important;
+    }
+
+    .systemLoadOverview .flex-container.flexGap10 {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .loadMetric {
+        min-width: 200px;
+    }
+
+    .loadBar {
+        width: 200px;
+    }
+}
+
+@media (max-width: 768px) {
+    .loadMetric {
+        min-width: 180px;
+    }
+
+    .loadBar {
+        width: 180px;
+        height: 20px;
+    }
+
+    .userLoadTableCell {
+        padding: 6px 4px;
+        font-size: 11px;
+    }
+
+    .userLoadTableHeader .userLoadTableCell {
+        font-size: 12px;
+    }
+
+    .systemLoadOverview,
+    .userLoadStats {
+        padding: 15px;
+    }
+}
+
+/* 动画效果 */
+@keyframes loadingPulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+.loading {
+    animation: loadingPulse 1.5s ease-in-out infinite;
+}
+
+/* 状态指示器 */
+.statusIndicator {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin-right: 4px;
+    flex-shrink: 0;
+}
+
+.statusIndicator.online {
+    background-color: #28a745;
+    box-shadow: 0 0 3px rgba(40, 167, 69, 0.5);
+}
+
+.statusIndicator.offline {
+    background-color: #6c757d;
+}
+
+.statusIndicator.busy {
+    background-color: #ffc107;
+}
+
+/* 工具提示样式 */
+.loadTooltip {
+    position: relative;
+    cursor: help;
+}
+
+.loadTooltip:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #333;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 1000;
+}

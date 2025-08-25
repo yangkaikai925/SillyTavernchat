@@ -6,6 +6,9 @@
         <button type="button" class="newUserButton menu_button menu_button_icon" data-target-tab="registerNewUserBlock">
             <h4 data-i18n="New User">New User</h4>
         </button>
+        <button type="button" class="systemLoadButton menu_button menu_button_icon" data-target-tab="systemLoadTab">
+            <h4>系统负载</h4>
+        </button>
     </nav>
     <div class="userAccountTemplate template_element">
         <div class="flex-container userAccount alignItemsCenter flexGap10">
@@ -44,6 +47,15 @@
                     <span>
                         <span data-i18n="Created:">Created:</span>
                         <span class="userCreated">&nbsp;</span>
+                    </span>
+                    <span class="userLoadInfo" style="display: none;">
+                        <span>今日楼层:</span>
+                        <span class="userTodayMessages">0</span>
+                        <small class="userTotalMessages">(总计: 0楼)</small>
+                    </span>
+                    <span class="userLastActivity" style="display: none;">
+                        <span>最后消息:</span>
+                        <span class="userLastMessageTime">未知</span>
                     </span>
                 </div>
             </div>
@@ -111,5 +123,81 @@
                 </button>
             </div>
         </form>
+    </div>
+    <div class="navTab systemLoadTab" style="display: none;">
+        <div class="flex-container flexFlowColumn flexGap10">
+            <!-- 系统负载概览 -->
+            <div class="systemLoadOverview">
+                <h3>系统负载概览</h3>
+                <div class="flex-container flexGap10 alignItemsCenter">
+                    <div class="loadMetric">
+                        <label>CPU使用率:</label>
+                        <div class="loadBar">
+                            <div class="loadBarFill cpuLoadBar" style="width: 0%"></div>
+                            <span class="loadBarText cpuLoadText">0%</span>
+                        </div>
+                    </div>
+                    <div class="loadMetric">
+                        <label>内存使用率:</label>
+                        <div class="loadBar">
+                            <div class="loadBarFill memoryLoadBar" style="width: 0%"></div>
+                            <span class="loadBarText memoryLoadText">0%</span>
+                        </div>
+                    </div>
+                    <div class="loadMetric">
+                        <label>系统运行时间:</label>
+                        <span class="systemUptimeText">0天 0时 0分 0秒</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 用户负载统计 -->
+            <div class="userLoadStats">
+                <h3>用户负载统计</h3>
+                <div class="flex-container alignItemsCenter flexGap10">
+                    <button type="button" class="refreshLoadButton menu_button">
+                        <i class="fa-fw fa-solid fa-refresh"></i>
+                        刷新数据
+                    </button>
+                    <button type="button" class="clearLoadStatsButton menu_button warning">
+                        <i class="fa-fw fa-solid fa-trash"></i>
+                        清除统计
+                    </button>
+                    <div class="autoRefreshIndicator">
+                        <i class="fa-fw fa-solid fa-clock"></i>
+                        <span>自动刷新: 每5秒</span>
+                        <div class="refreshCountdown">5</div>
+                    </div>
+                </div>
+                                        <span class="loadStatsInfo">
+                        活跃用户: <span class="activeUsersCount">0</span> |
+                        总楼层: <span class="totalMessagesCount">0</span> |
+                        今日楼层: <span class="todayMessagesCount">0</span>
+                    </span>
+                </div>
+                <div class="userLoadTable">
+                    <div class="userLoadTableHeader flex-container">
+                        <div class="userLoadTableCell" style="flex: 1.5;">用户</div>
+                        <div class="userLoadTableCell" style="flex: 1.2;">活跃度</div>
+                        <div class="userLoadTableCell" style="flex: 1;">今日楼层</div>
+                        <div class="userLoadTableCell" style="flex: 1.2;">历史总楼层</div>
+
+                        <div class="userLoadTableCell" style="flex: 2;">最后消息</div>
+                        <div class="userLoadTableCell" style="flex: 0.8;">操作</div>
+                    </div>
+                    <div class="userLoadTableBody">
+                        <!-- 用户负载数据将在这里动态填充 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 负载历史图表 -->
+            <div class="loadHistoryChart">
+                <h3>用户活跃期间系统负载历史</h3>
+                <div class="chartContainer" style="height: 300px; background: #2d2d30; border: 1px solid #555; border-radius: 4px; padding: 10px;">
+                    <canvas id="loadHistoryCanvas" width="800" height="280"></canvas>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
