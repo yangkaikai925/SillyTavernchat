@@ -68,6 +68,7 @@ import { init as settingsInit } from './endpoints/settings.js';
 import { redirectDeprecatedEndpoints, ServerStartup, setupPrivateEndpoints } from './server-startup.js';
 import { diskCache } from './endpoints/characters.js';
 import { migrateFlatSecrets } from './endpoints/secrets.js';
+import { isInvitationCodesEnabled } from './invitation-codes.js';
 
 // Work around a node v20.0.0, v20.1.0, and v20.2.0 bug. The issue was fixed in v20.3.0.
 // https://github.com/nodejs/node/issues/47822#issuecomment-1564708870
@@ -113,8 +114,11 @@ if (cliArgs.listen && cliArgs.basicAuthMode) {
 }
 
 if (cliArgs.whitelistMode) {
+    console.log(color.cyan('Whitelist mode is enabled'));
     const whitelistMiddleware = await getWhitelistMiddleware();
     app.use(whitelistMiddleware);
+} else {
+    console.log(color.cyan('Whitelist mode is disabled'));
 }
 
 if (cliArgs.listen) {
@@ -182,6 +186,8 @@ if (!cliArgs.disableCsrf) {
         // 豁免特定路径
         if (req.path.startsWith('/api/public-characters') ||
             req.path === '/api/users/me' ||
+            req.path === '/api/invitation-codes/enabled' ||
+            req.path === '/csrf-token' ||
             req.path === '/api/forum/upload-image' ||
             req.path.startsWith('/api/forum/images/') ||
             req.path.startsWith('/api/forum/')) {
@@ -257,6 +263,16 @@ app.use(express.static(path.join(serverDirectory, 'public'), {}));
 
 // Public API
 app.use('/api/users', usersPublicRouter);
+
+// Public: invitation codes enabled status (needed by register page)
+app.get('/api/invitation-codes/enabled', (req, res) => {
+    try {
+        const enabled = isInvitationCodesEnabled();
+        return res.json({ enabled });
+    } catch (error) {
+        return res.status(500).json({ enabled: false });
+    }
+});
 
 // Everything below this line requires authentication
 app.use(requireLoginMiddleware);

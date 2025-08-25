@@ -11,6 +11,9 @@ $(document).ready(function () {
             console.error('Error fetching CSRF token:', error);
         });
 
+    // 检查是否需要邀请码
+    checkInvitationCodeRequirement();
+
     // 注册表单提交
     $('#registerForm').on('submit', function (e) {
         e.preventDefault();
@@ -84,11 +87,22 @@ async function performRegistration() {
         return displayError('两次输入的密码不一致');
     }
 
+    // 检查邀请码（如果需要）
+    const invitationCode = $('#invitationCode').val().trim();
+    if ($('#invitationCodeGroup').is(':visible') && !invitationCode) {
+        return displayError('请输入邀请码');
+    }
+
     const userInfo = {
         name: displayName,
         handle: handle,
         password: password,
     };
+
+    // 如果需要邀请码，添加到请求中
+    if (invitationCode) {
+        userInfo.invitationCode = invitationCode;
+    }
 
     try {
         const response = await fetch('/api/users/register', {
@@ -144,4 +158,30 @@ function displaySuccess(message) {
  */
 function clearError() {
     $('#errorMessage').hide().removeClass('error success');
+}
+
+/**
+ * 检查是否需要邀请码
+ */
+async function checkInvitationCodeRequirement() {
+    try {
+        const response = await fetch('/api/invitation-codes/enabled');
+        if (response.ok) {
+            const data = await response.json();
+            if (data.enabled) {
+                // 显示邀请码输入框并设为必填
+                $('#invitationCodeGroup').show();
+                $('#invitationCode').prop('required', true);
+            } else {
+                // 隐藏邀请码输入框
+                $('#invitationCodeGroup').hide();
+                $('#invitationCode').prop('required', false);
+            }
+        }
+    } catch (error) {
+        console.error('检查邀请码要求失败:', error);
+        // 出错时默认不显示邀请码输入框
+        $('#invitationCodeGroup').hide();
+        $('#invitationCode').prop('required', false);
+    }
 }

@@ -8,6 +8,20 @@ import { applyLocale } from './i18n.js';
 const TEMPLATE_CACHE = new Map();
 
 /**
+ * Clears the template cache to force reloading of templates.
+ * @param {string} templateId Optional template ID to clear specific template cache
+ */
+export function clearTemplateCache(templateId = null) {
+    if (templateId) {
+        const pathToTemplate = `/scripts/templates/${templateId}.html`;
+        TEMPLATE_CACHE.delete(pathToTemplate);
+        // console.log('Cleared cache for template:', templateId);
+    } else {
+        TEMPLATE_CACHE.clear();
+    }
+}
+
+/**
  * Loads a URL content using XMLHttpRequest synchronously.
  * @param {string} url URL to load synchronously
  * @returns {string} Response text
@@ -61,6 +75,7 @@ export async function renderTemplateAsync(templateId, templateData = {}, sanitiz
     async function fetchTemplateAsync(pathToTemplate) {
         let template = TEMPLATE_CACHE.get(pathToTemplate);
         if (!template) {
+            // Load template from path
             const templateContent = await getUrlAsync(pathToTemplate);
             template = Handlebars.compile(templateContent);
             TEMPLATE_CACHE.set(pathToTemplate, template);

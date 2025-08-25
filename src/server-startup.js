@@ -49,6 +49,7 @@ import { router as dataMaidRouter } from './endpoints/data-maid.js';
 import { router as systemLoadRouter } from './endpoints/system-load.js';
 import { router as publicCharactersRouter } from './endpoints/public-characters.js';
 import { router as forumRouter } from './endpoints/forum.js';
+import { router as invitationCodesRouter } from './endpoints/invitation-codes.js';
 
 /**
  * @typedef {object} ServerStartupResult
@@ -179,6 +180,7 @@ export function setupPrivateEndpoints(app) {
     app.use('/api/azure', azureRouter);
     app.use('/api/data-maid', dataMaidRouter);
     app.use('/api/system-load', systemLoadRouter);
+    app.use('/api/invitation-codes', invitationCodesRouter);
 }
 
 /**

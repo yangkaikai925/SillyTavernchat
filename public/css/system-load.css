@@ -1,4 +1,5 @@
 /* 系统负载监控样式 - 深色主题 */
+/* 邀请码管理样式 */
 
 /* 管理员面板弹窗优化 */
 .adminTabs {
@@ -481,4 +482,173 @@
     font-size: 12px;
     white-space: nowrap;
     z-index: 1000;
+}
+
+/* 邀请码管理样式 */
+.invitationCodesStatus {
+    background-color: #2d2d30;
+    border: 1px solid #555;
+    border-radius: 4px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.invitationCodesStatus h3 {
+    color: #e0e0e0;
+    margin-bottom: 10px;
+}
+
+.statusIndicator {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.statusIndicator label {
+    color: #e0e0e0;
+    font-weight: bold;
+}
+
+.invitationCodesEnabled {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.invitationCodesEnabled.enabled {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.invitationCodesEnabled.disabled {
+    background-color: #F44336;
+    color: white;
+}
+
+.generateInvitationCode {
+    background-color: #2d2d30;
+    border: 1px solid #555;
+    border-radius: 4px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.generateInvitationCode h3 {
+    color: #e0e0e0;
+    margin-bottom: 15px;
+}
+
+.generateInvitationCode label {
+    color: #e0e0e0;
+    white-space: nowrap;
+}
+
+.generateInvitationCode input {
+    background-color: #1e1e1e;
+    border: 1px solid #555;
+    color: #e0e0e0;
+    padding: 8px;
+    border-radius: 4px;
+}
+
+.invitationCodesList {
+    background-color: #2d2d30;
+    border: 1px solid #555;
+    border-radius: 4px;
+    padding: 15px;
+}
+
+.invitationCodesList h3 {
+    color: #e0e0e0;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+}
+
+.invitationCodesTable {
+    border: 1px solid #555;
+    border-radius: 4px;
+    overflow: hidden;
+    background-color: #1e1e1e;
+}
+
+.invitationCodesTableHeader {
+    background-color: #1e1e1e;
+    border-bottom: 1px solid #555;
+    font-weight: bold;
+    color: #e0e0e0;
+}
+
+.invitationCodesTableCell {
+    padding: 12px 8px;
+    border-right: 1px solid #555;
+    font-size: 13px;
+    text-align: center;
+}
+
+.invitationCodesTableCell:last-child {
+    border-right: none;
+}
+
+.invitationCodesTableRow {
+    border-bottom: 1px solid #555;
+    color: #e0e0e0;
+}
+
+.invitationCodesTableRow:last-child {
+    border-bottom: none;
+}
+
+.invitationCodesTableRow:hover {
+    background-color: #3d3d40;
+}
+
+.invitationCode {
+    font-family: monospace;
+    font-size: 14px;
+    background-color: #3d3d40;
+    padding: 4px 8px;
+    border-radius: 4px;
+    color: #4CAF50;
+}
+
+.codeStatus {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.codeStatus.unused {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.codeStatus.used {
+    background-color: #FF9800;
+    color: white;
+}
+
+.codeStatus.expired {
+    background-color: #F44336;
+    color: white;
+}
+
+.deleteCodeBtn {
+    background-color: #F44336;
+    color: white;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.deleteCodeBtn:hover {
+    background-color: #D32F2F;
+}
+
+.deleteCodeBtn:disabled {
+    background-color: #666;
+    cursor: not-allowed;
 }

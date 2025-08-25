@@ -172,11 +172,11 @@
                         <div class="refreshCountdown">5</div>
                     </div>
                 </div>
-                <span class="loadStatsInfo">
-                    活跃用户: <span class="activeUsersCount">0</span> |
-                    总楼层: <span class="totalMessagesCount">0</span> |
-                    今日楼层: <span class="todayMessagesCount">0</span>
-                </span>
+                                        <span class="loadStatsInfo">
+                        活跃用户: <span class="activeUsersCount">0</span> |
+                        总楼层: <span class="totalMessagesCount">0</span> |
+                        今日楼层: <span class="todayMessagesCount">0</span>
+                    </span>
                 </div>
                 <div class="userLoadTable">
                     <div class="userLoadTableHeader flex-container">
@@ -204,95 +204,113 @@
         </div>
     </div>
     <div class="navTab invitationCodesTab" style="display: none;">
-        <div style="padding: 20px; background: #1e1e1e; color: #e0e0e0; min-height: 400px;">
-            <h3 style="color: #4CAF50; margin-bottom: 20px;">邀请码管理</h3>
-
-            <!-- 功能状态 -->
-            <div style="background: #2d2d30; padding: 15px; margin-bottom: 20px; border: 1px solid #555; border-radius: 4px;">
-                <h4>功能状态</h4>
-                <p>功能状态: <span class="invitationCodesEnabled" style="color: #4CAF50;">已启用</span></p>
+        <div class="flex-container flexFlowColumn flexGap10">
+            <!-- 邀请码功能状态 -->
+            <div class="invitationCodesStatus">
+                <h3>邀请码功能状态</h3>
+                <div class="flex-container flexGap10 alignItemsCenter">
+                    <div class="statusIndicator">
+                        <label>功能状态:</label>
+                        <span class="invitationCodesEnabled">未知</span>
+                    </div>
+                </div>
             </div>
 
             <!-- 生成邀请码 -->
-            <div class="generateInvitationCode" style="background: #2d2d30; padding: 15px; margin-bottom: 20px; border: 1px solid #555; border-radius: 4px;">
-                <h4>生成邀请码</h4>
-                <div style="margin: 10px 0;">
-                    <label>过期时间(小时): </label>
-                    <input type="number" id="invitationCodeExpireHours" min="1" max="8760" value="24" style="width: 80px; background: #1e1e1e; color: #e0e0e0; border: 1px solid #555; padding: 5px; border-radius: 3px;">
-                    <button type="button" id="generateInvitationCodeBtn" class="menu_button" style="margin-left: 10px;">
-                        生成邀请码
-                    </button>
-                </div>
-                <div style="margin: 10px 0;">
-                    <label>批量生成数量: </label>
-                    <input type="number" id="batchCount" min="1" max="100" value="5" style="width: 80px; background: #1e1e1e; color: #e0e0e0; border: 1px solid #555; padding: 5px; border-radius: 3px;">
-                    <label style="margin-left: 10px;">过期时间(小时): </label>
-                    <input type="number" id="batchExpireHours" min="1" max="8760" value="24" style="width: 80px; background: #1e1e1e; color: #e0e0e0; border: 1px solid #555; padding: 5px; border-radius: 3px;">
-                    <button type="button" id="generateBatchCodesBtn" class="menu_button" style="margin-left: 10px;">
-                        批量生成
-                    </button>
-                </div>
-                <div id="generatedCodeDisplay" style="display: none; margin-top: 10px; padding: 10px; background: #3d3d40; border: 1px solid #555; border-radius: 4px;">
-                    <h5>生成的邀请码：</h5>
+            <div class="generateInvitationCode">
+                <h3>生成邀请码</h3>
 
-                    <!-- 单个邀请码显示 -->
-                    <div id="singleCodeDisplay" style="display: none;">
-                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                            <span id="generatedCodeText" style="font-family: monospace; color: #4CAF50; font-size: 16px; background: #2d2d30; padding: 8px; border-radius: 4px;"></span>
-                            <button type="button" id="copyCodeBtn" class="menu_button" style="font-size: 12px;">
-                                <i class="fa-fw fa-solid fa-copy"></i> 复制
-                            </button>
+                <!-- 单个生成 -->
+                <div class="singleGenerate" style="margin-bottom: 20px;">
+                    <h4 style="color: #e0e0e0; margin-bottom: 10px;">单个生成</h4>
+                    <div class="flex-container flexGap10 alignItemsCenter">
+                        <label>过期时间（小时，留空为永不过期）:</label>
+                        <input type="number" id="invitationCodeExpireHours" placeholder="24" min="1" max="8760" style="width: 100px;">
+                        <button type="button" id="generateInvitationCodeBtn" class="menu_button">
+                            <i class="fa-fw fa-solid fa-plus"></i>
+                            生成邀请码
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 批量生成 -->
+                <div class="batchGenerate" style="margin-bottom: 20px; border-top: 1px solid #555; padding-top: 15px;">
+                    <h4 style="color: #e0e0e0; margin-bottom: 10px;">批量生成</h4>
+                    <div class="flex-container flexGap10 alignItemsCenter flexWrap">
+                        <label>生成数量:</label>
+                        <input type="number" id="batchCount" placeholder="5" min="1" max="100" value="5" style="width: 80px;">
+                        <label>过期时间（小时，留空为永不过期）:</label>
+                        <input type="number" id="batchExpireHours" placeholder="24" min="1" max="8760" style="width: 100px;">
+                        <button type="button" id="generateBatchCodesBtn" class="menu_button">
+                            <i class="fa-fw fa-solid fa-layer-group"></i>
+                            批量生成
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 生成结果显示 -->
+                <div id="generatedCodeDisplay" style="display: none; margin-top: 10px; padding: 10px; background: #2d2d30; border: 1px solid #555; border-radius: 4px;">
+                    <strong>新生成的邀请码:</strong>
+                    <div id="generatedCodesContainer" style="margin: 10px 0;">
+                        <!-- 单个邀请码显示 -->
+                        <div id="singleCodeDisplay" style="display: none;">
+                            <div style="font-family: monospace; font-size: 16px; color: #4CAF50; margin: 5px 0;">
+                                <span id="generatedCodeText"></span>
+                                <button type="button" id="copyCodeBtn" class="menu_button_icon" style="margin-left: 10px;" title="复制邀请码">
+                                    <i class="fa-fw fa-solid fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <!-- 批量邀请码显示 -->
+                        <div id="batchCodesDisplay" style="display: none;">
+                            <div id="batchCodesList" style="max-height: 200px; overflow-y: auto; background: #1e1e1e; padding: 10px; border-radius: 4px; margin: 10px 0;">
+                                <!-- 批量邀请码列表 -->
+                            </div>
+                            <div class="flex-container flexGap10 alignItemsCenter">
+                                <button type="button" id="copyAllCodesBtn" class="menu_button">
+                                    <i class="fa-fw fa-solid fa-copy"></i>
+                                    复制全部
+                                </button>
+                                <button type="button" id="downloadCodesBtn" class="menu_button">
+                                    <i class="fa-fw fa-solid fa-download"></i>
+                                    下载文本文件
+                                </button>
+                            </div>
                         </div>
                     </div>
-
-                    <!-- 批量邀请码显示 -->
-                    <div id="batchCodesDisplay" style="display: none;">
-                        <div style="margin-bottom: 10px;">
-                            <button type="button" id="copyAllCodesBtn" class="menu_button" style="margin-right: 10px;">
-                                <i class="fa-fw fa-solid fa-copy"></i> 复制全部
-                            </button>
-                            <button type="button" id="downloadCodesBtn" class="menu_button">
-                                <i class="fa-fw fa-solid fa-download"></i> 下载文件
-                            </button>
-                        </div>
-                        <div id="batchCodesList" style="max-height: 200px; overflow-y: auto; background: #2d2d30; padding: 10px; border-radius: 4px;">
-                            <!-- 批量邀请码将在这里显示 -->
-                        </div>
-                    </div>
+                    <small style="color: #888;">请立即复制并保存，关闭此面板后将无法再次查看</small>
                 </div>
             </div>
 
             <!-- 邀请码列表 -->
-            <div class="invitationCodesList" style="background: #2d2d30; padding: 15px; border: 1px solid #555; border-radius: 4px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <h4>邀请码列表</h4>
-                    <div>
-                        <button type="button" id="refreshInvitationCodesBtn" class="menu_button" style="margin-right: 10px;">
-                            <i class="fa-fw fa-solid fa-refresh"></i> 刷新
-                        </button>
-                        <button type="button" id="cleanupExpiredCodesBtn" class="menu_button warning">
-                            清理过期
-                        </button>
+            <div class="invitationCodesList">
+                <h3>
+                    邀请码列表
+                    <button type="button" id="refreshInvitationCodesBtn" class="menu_button_icon" style="margin-left: 10px;" title="刷新列表">
+                        <i class="fa-fw fa-solid fa-refresh"></i>
+                    </button>
+                    <button type="button" id="cleanupExpiredCodesBtn" class="menu_button_icon" style="margin-left: 5px;" title="清理过期邀请码">
+                        <i class="fa-fw fa-solid fa-trash"></i>
+                    </button>
+                </h3>
+                <div class="invitationCodesTable">
+                    <div class="invitationCodesTableHeader flex-container">
+                        <div class="invitationCodesTableCell" style="flex: 2;">邀请码</div>
+                        <div class="invitationCodesTableCell" style="flex: 1;">创建者</div>
+                        <div class="invitationCodesTableCell" style="flex: 1;">创建时间</div>
+                        <div class="invitationCodesTableCell" style="flex: 1;">状态</div>
+                        <div class="invitationCodesTableCell" style="flex: 1;">使用者</div>
+                        <div class="invitationCodesTableCell" style="flex: 1;">过期时间</div>
+                        <div class="invitationCodesTableCell" style="flex: 1;">操作</div>
                     </div>
-                </div>
-                <div style="border: 1px solid #555; border-radius: 4px; overflow: hidden; background: #1e1e1e;">
-                    <div style="background: #1e1e1e; padding: 10px; border-bottom: 1px solid #555; font-weight: bold;">
-                        <div style="display: flex;">
-                            <div style="flex: 2;">邀请码</div>
-                            <div style="flex: 1;">创建者</div>
-                            <div style="flex: 1;">创建时间</div>
-                            <div style="flex: 1;">状态</div>
-                            <div style="flex: 1;">操作</div>
-                        </div>
-                    </div>
-                    <div class="invitationCodesTableBody" style="min-height: 100px;">
-                        <div style="display: flex; justify-content: center; align-items: center; padding: 20px; color: #888;">
-                            加载中...
+                    <div class="invitationCodesTableBody">
+                        <!-- 邀请码列表将在这里动态生成 -->
+                        <div class="invitationCodesTableRow flex-container" style="justify-content: center; padding: 20px;">
+                            <span style="color: #888;">加载中...</span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 </div>

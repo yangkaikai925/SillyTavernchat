@@ -76,6 +76,8 @@ requestProxy:
 enableUserAccounts: false
 # Enable discreet login mode: hides user list on the login screen
 enableDiscreetLogin: false
+# Enable invitation code system: requires invitation codes for user registration
+enableInvitationCodes: true
 # Enable's authlia based auto login. Only enable this if you
 # have setup and installed Authelia as a middle-ware on your
 # reverse proxy

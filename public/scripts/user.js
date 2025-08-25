@@ -959,7 +959,6 @@ async function openAdminPanel() {
 
     // 更新系统负载UI
     function updateSystemLoadUI(data) {
-        console.log('系统负载数据:', data); // 调试日志
         const { system, users } = data;
 
         // 更新系统负载指标
@@ -971,14 +970,7 @@ async function openAdminPanel() {
             template.find('.cpuLoadBar').css('width', `${cpuPercent}%`);
             template.find('.cpuLoadText').text(`${cpuPercent}%`);
 
-            // 在控制台显示详细的CPU信息用于调试
-            console.log('CPU详细信息:', {
-                平滑值: cpuPercent + '%',
-                原始值: cpuRaw + '%',
-                核心数: system.current.cpu.cores,
-                负载平均: system.current.cpu.loadAverage,
-                型号: system.current.cpu.model
-            });
+            // 详细 CPU 信息的调试输出已移除
             template.find('.memoryLoadBar').css('width', `${memoryPercent}%`);
             template.find('.memoryLoadText').text(`${memoryPercent}%`);
             template.find('.systemUptimeText').text(system.current.uptime.systemFormatted || '未知');
@@ -1114,10 +1106,21 @@ async function openAdminPanel() {
         if (target === 'systemLoadTab') {
             renderSystemLoad();
             startAutoRefresh();
+        } else if (target === 'invitationCodesTab') {
+            // 进入邀请码管理页时刷新状态与列表
+            updateInvitationCodesStatus();
+            renderInvitationCodesList();
+            stopAutoRefresh();
         } else {
             // 离开系统负载页面时停止自动刷新
             stopAutoRefresh();
         }
+    });
+
+    // 显式绑定邀请码管理按钮：使用独立弹窗展示，避免某些环境下标签区域不渲染的问题
+    template.find('.invitationCodesButton').on('click', function () {
+        openInvitationCodesManager();
+        stopAutoRefresh();
     });
 
     template.find('.createUserDisplayName').on('input', async function () {
@@ -1148,7 +1151,177 @@ async function openAdminPanel() {
         }
     });
 
-        callGenericPopup(template, POPUP_TYPE.TEXT, '', {
+    // ===== 邀请码管理：状态、生成、列表、操作 =====
+    async function updateInvitationCodesStatus() {
+        try {
+            const response = await fetch('/api/invitation-codes/enabled', { headers: getRequestHeaders() });
+            const data = await response.json();
+            const enabled = Boolean(data?.enabled);
+            const el = template.find('.invitationCodesEnabled');
+            el.text(enabled ? '已启用' : '已禁用');
+            el.css('color', enabled ? '#4CAF50' : '#f44336');
+        } catch (error) {
+            console.error('获取邀请码状态失败:', error);
+        }
+    }
+
+    async function generateSingleInvitationCode() {
+        const hoursStr = String(template.find('#invitationCodeExpireHours').val() || '').trim();
+        const expiresInHours = hoursStr ? Number(hoursStr) : null;
+        try {
+            const response = await fetch('/api/invitation-codes/create', {
+                method: 'POST',
+                headers: getRequestHeaders(),
+                body: JSON.stringify({ expiresInHours }),
+            });
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({}));
+                throw new Error(err.error || '生成邀请码失败');
+            }
+            const data = await response.json();
+            const code = data.code;
+            template.find('#generatedCodeText').text(code);
+            template.find('#singleCodeDisplay').show();
+            template.find('#batchCodesDisplay').hide();
+            template.find('#generatedCodeDisplay').show();
+        } catch (error) {
+            toastr.error(error.message || '生成邀请码失败');
+        }
+    }
+
+    async function generateBatchInvitationCodes() {
+        const count = Number(String(template.find('#batchCount').val() || '5'));
+        const expiresInHours = Number(String(template.find('#batchExpireHours').val() || '24'));
+        try {
+            const response = await fetch('/api/invitation-codes/create-batch', {
+                method: 'POST',
+                headers: getRequestHeaders(),
+                body: JSON.stringify({ count, expiresInHours }),
+            });
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({}));
+                throw new Error(err.error || '批量生成失败');
+            }
+            const data = await response.json();
+            const codes = (data.codes || []).map(c => c.code);
+            const list = template.find('#batchCodesList');
+            list.empty();
+            codes.forEach(code => {
+                list.append(`<div style="font-family: monospace; color: #4CAF50; margin: 2px 0;">${code}</div>`);
+            });
+            template.find('#singleCodeDisplay').hide();
+            template.find('#batchCodesDisplay').show();
+            template.find('#generatedCodeDisplay').show();
+        } catch (error) {
+            toastr.error(error.message || '批量生成失败');
+        }
+    }
+
+    async function renderInvitationCodesList() {
+        try {
+            const body = template.find('.invitationCodesTableBody');
+            body.html('<div style="display:flex;justify-content:center;align-items:center;padding:20px;color:#888;">加载中...</div>');
+            const response = await fetch('/api/invitation-codes/list', { headers: getRequestHeaders() });
+            if (!response.ok) throw new Error('获取邀请码列表失败');
+            const items = await response.json();
+            if (!Array.isArray(items)) throw new Error('返回数据格式错误');
+            body.empty();
+            if (items.length === 0) {
+                body.html('<div style="display:flex;justify-content:center;align-items:center;padding:20px;color:#888;">暂无数据</div>');
+                return;
+            }
+            for (const it of items) {
+                const createdText = it.createdAt ? new Date(it.createdAt).toLocaleString() : '-';
+                const statusText = it.used ? '已使用' : (it.expired ? '已过期' : '未使用');
+                const row = $(`
+                    <div class="invitationCodesTableRow" style="display:flex; padding:10px; border-bottom:1px solid #333; align-items:center;">
+                        <div style="flex:2; font-family: monospace;">${it.code}</div>
+                        <div style="flex:1;">${it.createdBy || '-'}</div>
+                        <div style="flex:1;">${createdText}</div>
+                        <div style="flex:1;">${statusText}</div>
+                        <div style="flex:1;">
+                            <button type="button" class="menu_button deleteInvitationBtn" data-code="${it.code}">删除</button>
+                        </div>
+                    </div>
+                `);
+                body.append(row);
+            }
+            // 绑定删除按钮
+            body.find('.deleteInvitationBtn').on('click', async function() {
+                const code = String($(this).data('code'));
+                if (!code) return;
+                if (!confirm(`确定删除邀请码 ${code} 吗？`)) return;
+                try {
+                    const res = await fetch(`/api/invitation-codes/${encodeURIComponent(code)}`, { method: 'DELETE', headers: getRequestHeaders() });
+                    if (!res.ok) throw new Error('删除失败');
+                    toastr.success('删除成功');
+                    await renderInvitationCodesList();
+                } catch (e) {
+                    toastr.error(e.message || '删除失败');
+                }
+            });
+        } catch (error) {
+            console.error(error);
+            toastr.error(error.message || '获取邀请码列表失败');
+        }
+    }
+
+    // 复制按钮
+    template.find('#copyCodeBtn').on('click', async function() {
+        const code = String(template.find('#generatedCodeText').text() || '');
+        if (!code) return;
+        try {
+            await navigator.clipboard.writeText(code);
+            toastr.success('已复制到剪贴板');
+        } catch {
+            toastr.error('复制失败');
+        }
+    });
+
+    // 复制全部
+    template.find('#copyAllCodesBtn').on('click', async function() {
+        const all = template.find('#batchCodesList').text().trim();
+        if (!all) return;
+        try {
+            await navigator.clipboard.writeText(all);
+            toastr.success('已复制全部邀请码');
+        } catch {
+            toastr.error('复制失败');
+        }
+    });
+
+    // 下载批量邀请码
+    template.find('#downloadCodesBtn').on('click', function() {
+        const codes = template.find('#batchCodesList').text().trim();
+        if (!codes) return;
+        const blob = new Blob([codes.replace(/\n+/g, '\n')], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `invitation-codes-${Date.now()}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    });
+
+    // 事件绑定：生成与刷新
+    template.find('#generateInvitationCodeBtn').on('click', () => generateSingleInvitationCode());
+    template.find('#generateBatchCodesBtn').on('click', () => generateBatchInvitationCodes());
+    template.find('#refreshInvitationCodesBtn').on('click', () => renderInvitationCodesList());
+    template.find('#cleanupExpiredCodesBtn').on('click', async function() {
+        if (!confirm('确定清理所有已过期的邀请码吗？')) return;
+        try {
+            const res = await fetch('/api/invitation-codes/cleanup', { method: 'POST', headers: getRequestHeaders() });
+            if (!res.ok) throw new Error('清理失败');
+            toastr.success('清理成功');
+            await renderInvitationCodesList();
+        } catch (e) {
+            toastr.error(e.message || '清理失败');
+        }
+    });
+
+    callGenericPopup(template, POPUP_TYPE.TEXT, '', {
         okButton: 'Close',
         wide: true,
         large: true,
@@ -1160,6 +1333,152 @@ async function openAdminPanel() {
         }
     });
     renderUsers();
+}
+
+// 独立弹窗版：邀请码管理
+async function openInvitationCodesManager() {
+    const modal = $(`
+        <div class="flex-container flexFlowColumn" style="gap:12px; min-width: 680px;">
+            <div class="flex-container alignItemsCenter" style="gap:10px;">
+                <h3 style="margin:0;">邀请码管理</h3>
+                <span class="invitationCodesEnabled" style="margin-left:8px; color:#4CAF50;">...</span>
+            </div>
+            <div class="flex-container alignItemsCenter" style="gap:8px; display:flex; flex-direction:row; align-items:center;">
+                <label>过期时间(小时):</label>
+                <input type="number" class="ic_expire_single" min="1" max="8760" value="24" style="width: 90px; color:#000; background:#fff;">
+                <button type="button" class="menu_button ic_generate_single" style="display:inline-flex; align-items:center; justify-content:center; width:auto; white-space:nowrap; padding:6px 10px;">生成</button>
+                <div style="margin-left: 12px; font-family: monospace;"><span id="ic_single_code"></span></div>
+            </div>
+            <div class="flex-container alignItemsCenter" style="gap:8px; display:flex; flex-direction:row; align-items:center;">
+                <label>批量数量:</label>
+                <input type="number" class="ic_batch_count" min="1" max="100" value="5" style="width: 90px; color:#000; background:#fff;">
+                <label>过期(小时):</label>
+                <input type="number" class="ic_expire_batch" min="1" max="8760" value="24" style="width: 90px; color:#000; background:#fff;">
+                <button type="button" class="menu_button ic_generate_batch" style="display:inline-flex; align-items:center; justify-content:center; width:auto; white-space:nowrap; padding:6px 10px;">批量生成</button>
+                <button type="button" class="menu_button ic_copy_all" style="display:inline-flex; align-items:center; justify-content:center; width:auto; white-space:nowrap; padding:6px 10px;">复制全部</button>
+                <button type="button" class="menu_button ic_download" style="display:inline-flex; align-items:center; justify-content:center; width:auto; white-space:nowrap; padding:6px 10px;">下载</button>
+            </div>
+            <div style="border:1px solid #555; border-radius:4px; overflow:hidden;">
+                <div style="background:#1e1e1e; padding:8px; font-weight:bold; display:flex;">
+                    <div style="flex:2;">邀请码</div>
+                    <div style="flex:1;">创建者</div>
+                    <div style="flex:1;">创建时间</div>
+                    <div style="flex:1;">状态</div>
+                    <div style="flex:1;">使用者</div>
+                    <div style="flex:1;">操作</div>
+                </div>
+                <div class="ic_table_body" style="min-height:160px;"></div>
+            </div>
+            <div class="flex-container" style="gap:8px; display:flex; flex-direction:row; align-items:center;">
+                <button type="button" class="menu_button ic_refresh" style="display:inline-flex; align-items:center; justify-content:center; padding:6px 12px; width:auto; white-space:nowrap; writing-mode:horizontal-tb;">刷新</button>
+                <button type="button" class="menu_button warning ic_cleanup" style="display:inline-flex; align-items:center; justify-content:center; padding:6px 12px; width:auto; white-space:nowrap; writing-mode:horizontal-tb;">清理过期</button>
+            </div>
+        </div>
+    `);
+
+    callGenericPopup(modal, POPUP_TYPE.TEXT, '', { okButton: '关闭', wide: true, large: true, allowVerticalScrolling: true });
+
+    async function refreshEnabled() {
+        try {
+            const res = await fetch('/api/invitation-codes/enabled', { headers: getRequestHeaders() });
+            const data = await res.json();
+            const enabled = Boolean(data?.enabled);
+            const label = modal.find('.invitationCodesEnabled');
+            label.text(enabled ? '已启用' : '已禁用').css('color', enabled ? '#4CAF50' : '#f44336');
+        } catch {}
+    }
+
+    async function refreshList() {
+        const body = modal.find('.ic_table_body');
+        body.html('<div style="padding:16px; color:#888; text-align:center;">加载中...</div>');
+        try {
+            const res = await fetch('/api/invitation-codes/list', { headers: getRequestHeaders() });
+            if (!res.ok) throw new Error('列表获取失败');
+            const items = await res.json();
+            body.empty();
+            if (!Array.isArray(items) || items.length === 0) {
+                body.html('<div style="padding:16px; color:#888; text-align:center;">暂无数据</div>');
+                return;
+            }
+            for (const it of items) {
+                const createdText = it.createdAt ? new Date(it.createdAt).toLocaleString() : '-';
+                const statusText = it.used ? '已使用' : (it.expired ? '已过期' : '未使用');
+                const row = $(`
+                    <div style="display:flex; padding:10px; border-top:1px solid #333; align-items:center;">
+                        <div style="flex:2; font-family: monospace;">${it.code}</div>
+                        <div style="flex:1;">${it.createdBy || '-'}</div>
+                        <div style="flex:1;">${createdText}</div>
+                        <div style="flex:1;">${statusText}</div>
+                        <div style="flex:1;">${it.usedBy || '-'}</div>
+                        <div style="flex:1;">
+                            <button type="button" class="menu_button ic_delete" data-code="${it.code}">删除</button>
+                        </div>
+                    </div>
+                `);
+                body.append(row);
+            }
+            body.find('.ic_delete').on('click', async function() {
+                const code = String($(this).data('code'));
+                if (!confirm(`确定删除邀请码 ${code} 吗？`)) return;
+                const del = await fetch(`/api/invitation-codes/${encodeURIComponent(code)}`, { method: 'DELETE', headers: getRequestHeaders() });
+                if (!del.ok) return toastr.error('删除失败');
+                toastr.success('删除成功');
+                refreshList();
+            });
+        } catch (e) {
+            body.html('<div style="padding:16px; color:#f44336; text-align:center;">加载失败</div>');
+        }
+    }
+
+    modal.find('.ic_generate_single').on('click', async function () {
+        const hours = Number(String(modal.find('.ic_expire_single').val() || '')) || null;
+        try {
+            const res = await fetch('/api/invitation-codes/create', { method: 'POST', headers: getRequestHeaders(), body: JSON.stringify({ expiresInHours: hours }) });
+            if (!res.ok) throw 0;
+            const data = await res.json();
+            modal.find('#ic_single_code').text(data.code || '');
+            refreshList();
+        } catch { toastr.error('生成失败'); }
+    });
+
+    modal.find('.ic_generate_batch').on('click', async function () {
+        const count = Number(String(modal.find('.ic_batch_count').val() || '5'));
+        const hours = Number(String(modal.find('.ic_expire_batch').val() || '24'));
+        try {
+            const res = await fetch('/api/invitation-codes/create-batch', { method: 'POST', headers: getRequestHeaders(), body: JSON.stringify({ count, expiresInHours: hours }) });
+            if (!res.ok) throw 0;
+            const data = await res.json();
+            const all = (data.codes || []).map(c => c.code).join('\n');
+            await navigator.clipboard.writeText(all);
+            toastr.success('批量邀请码已复制');
+            refreshList();
+        } catch { toastr.error('批量生成失败'); }
+    });
+
+    modal.find('.ic_copy_all').on('click', async function () {
+        const codes = modal.find('.ic_table_body').text().trim();
+        if (!codes) return;
+        try { await navigator.clipboard.writeText(codes); toastr.success('已复制'); } catch { toastr.error('复制失败'); }
+    });
+    modal.find('.ic_download').on('click', function () {
+        const codes = modal.find('.ic_table_body').text().trim();
+        if (!codes) return;
+        const blob = new Blob([codes.replace(/\n+/g, '\n')], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = `invitation-codes-${Date.now()}.txt`; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+    });
+    modal.find('.ic_refresh').on('click', () => refreshList());
+    modal.find('.ic_cleanup').on('click', async function () {
+        if (!confirm('确定清理所有已过期的邀请码吗？')) return;
+        try {
+            const res = await fetch('/api/invitation-codes/cleanup', { method: 'POST', headers: getRequestHeaders() });
+            if (!res.ok) throw 0; toastr.success('清理成功'); refreshList();
+        } catch { toastr.error('清理失败'); }
+    });
+
+    refreshEnabled();
+    refreshList();
 }
 
 /**

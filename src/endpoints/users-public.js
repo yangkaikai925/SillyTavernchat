@@ -8,6 +8,7 @@ import { color, Cache, getConfigValue } from '../util.js';
 import { KEY_PREFIX, getUserAvatar, toKey, getPasswordHash, getPasswordSalt, getAllUserHandles, ensurePublicDirectoriesExist, getUserDirectories } from '../users.js';
 import lodash from 'lodash';
 import { checkForNewContent, CONTENT_TYPES } from './content-manager.js';
+import { validateInvitationCode, useInvitationCode, isInvitationCodesEnabled } from '../invitation-codes.js';
 
 const DISCREET_LOGIN = getConfigValue('enableDiscreetLogin', false, 'boolean');
 const PREFER_REAL_IP_HEADER = getConfigValue('rateLimiting.preferRealIpHeader', false, 'boolean');
@@ -118,6 +119,20 @@ router.post('/register', async (request, response) => {
             return response.status(400).json({ error: 'Missing required fields' });
         }
 
+        // 验证邀请码（如果启用）
+        if (isInvitationCodesEnabled()) {
+            if (!request.body.invitationCode) {
+                console.warn('Register failed: Missing invitation code');
+                return response.status(400).json({ error: 'Invitation code is required' });
+            }
+
+            const validation = await validateInvitationCode(request.body.invitationCode);
+            if (!validation.valid) {
+                console.warn('Register failed: Invalid invitation code:', validation.reason);
+                return response.status(400).json({ error: validation.reason || 'Invalid invitation code' });
+            }
+        }
+
         const ip = getIpAddress(request);
         await registerLimiter.consume(ip);
 
@@ -148,6 +163,11 @@ router.post('/register', async (request, response) => {
         };
 
         await storage.setItem(toKey(handle), newUser);
+
+        // 标记邀请码为已使用（如果启用）
+        if (isInvitationCodesEnabled() && request.body.invitationCode) {
+            await useInvitationCode(request.body.invitationCode, handle);
+        }
 
         // Create user directories
         console.info('Creating data directories for', newUser.handle);
