@@ -45,6 +45,7 @@ import { router as koboldRouter } from './endpoints/backends/kobold.js';
 import { router as textCompletionsRouter } from './endpoints/backends/text-completions.js';
 import { router as speechRouter } from './endpoints/speech.js';
 import { router as azureRouter } from './endpoints/azure.js';
+import { router as minimaxRouter } from './endpoints/minimax.js';
 import { router as dataMaidRouter } from './endpoints/data-maid.js';
 import { router as systemLoadRouter } from './endpoints/system-load.js';
 import { router as publicCharactersRouter } from './endpoints/public-characters.js';
@@ -178,6 +179,7 @@ export function setupPrivateEndpoints(app) {
     app.use('/api/backends/chat-completions', chatCompletionsRouter);
     app.use('/api/speech', speechRouter);
     app.use('/api/azure', azureRouter);
+    app.use('/api/minimax', minimaxRouter);
     app.use('/api/data-maid', dataMaidRouter);
     app.use('/api/system-load', systemLoadRouter);
     app.use('/api/invitation-codes', invitationCodesRouter);
