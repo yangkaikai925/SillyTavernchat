@@ -37,7 +37,7 @@ browserLaunch:
   # Use if you don't have 'localhost' in your hosts file
   avoidLocalhost: false
 # Server port
-port: 8080
+port: 8000
 # -- SSL options --
 ssl:
   enabled: false
